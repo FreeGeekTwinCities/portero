@@ -4,7 +4,8 @@ pkg_resources.require("Flask")
 from flask import Flask, render_template, request
 from wtforms import Form, DateField, DecimalField, TextField, SelectField, validators
 from proteus import config, Model
- 
+from datetime import date
+
 config = config.set_trytond(database_name='test', user='admin', password='test')
 print config
 
@@ -35,7 +36,10 @@ def hello():
 def enter_timesheet():
 	if request.method == 'POST':
 		line = TimesheetLine()
-		print line.__dict__
+		line.hours = float(request.form['hours'])
+		line.description = request.form['description']
+		line.work = Work.find()[1]
+		line.employee = Employee.find()[1]
 		line.save()
 
 	form = TimesheetForm(request.form)
