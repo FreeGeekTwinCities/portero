@@ -38,8 +38,9 @@ def enter_timesheet():
 		line = TimesheetLine()
 		line.hours = float(request.form['hours'])
 		line.description = request.form['description']
-		line.work = Work.find()[1]
-		line.employee = Employee.find()[1]
+		line.work = Work(request.form['work'])
+		line.employee = Employee(request.form['employee'])
+		#line.date = date(request.form['date'])
 		line.save()
 
 	form = TimesheetForm(request.form)
