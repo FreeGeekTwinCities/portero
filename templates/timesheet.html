@@ -1,0 +1,17 @@
+{% from "_formhelpers.html" import render_field %}
+<!doctype html>
+<title>{{ company }}: Timesheet Entry</title>
+
+<form action="{{ url_for('enter_timesheet') }}" method=post>
+	<dl>
+		{{ render_field(form.employee) }}
+		{{ render_field(form.work) }}
+		{{ render_field(form.hours) }}
+		{{ render_field(form.date) }}
+		{{ render_field(form.description) }}
+		<dd><input type=submit value=Save></dd>
+	</dl>
+</form>
+
+{{ request }}
+{{ request.form }}

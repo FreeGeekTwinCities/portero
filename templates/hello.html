@@ -1,18 +1,6 @@
 <!doctype html>
-<title>Hello from Flask</title>
+<title>Portero @ {{ company }}</title>
+Welcome to {{ company }}
 
-<select>
-  {% for party in party_array %}
-    <option value="{{ party.code }}">{{ party.name }}</option> 
-  {% endfor %}
-</select>
-{{ party_array }}
-
-<select>
-  {% for work in work_array %}
-	<option value="{{ work.id }}">{{ work.name }}</option>
-  {% endfor %}
-</select>
-{{ work_array }}
-
-{{ employees }}
+<h3><a href="timesheet">Record your volunteer time</a></h3>
+<h3><a href="transaction">Enter a transaction</a></h3>
