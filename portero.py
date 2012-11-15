@@ -2,9 +2,10 @@ import pkg_resources
 pkg_resources.require("Flask")
 
 from flask import Flask, render_template, request
+from flask.ext.bootstrap import Bootstrap
 from wtforms import Form, DateField, DecimalField, TextField, SelectField, validators
 from proteus import config, Model
-from datetime import date
+from datetime import date, datetime
 
 config = config.set_trytond(database_name='test', user='admin', password='test')
 print config
@@ -20,6 +21,7 @@ TimesheetLine = Model.get('timesheet.line')
 
 app = Flask(__name__)
 app.debug = True
+Bootstrap(app)
 
 #Set up timesheet fields for later use
 class TimesheetForm(Form):
@@ -43,7 +45,8 @@ def enter_timesheet():
 		line.description = request.form['description']
 		line.work = Work(request.form['work'])
 		line.employee = Employee(request.form['employee'])
-		#line.date = date(request.form['date'])
+		line.date = datetime.strptime(request.form['date'], "%m/%d/%Y").date()
+		print line
 		line.save()
 
 	#Generate timesheet entry form (defined in TimesheetForm above)

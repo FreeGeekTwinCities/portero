@@ -1,6 +1,12 @@
-<!doctype html>
-<title>Portero @ {{ company }}</title>
+{% extends "base.html" %}
+
+{% block body %}
+<ul class="breadcrumb">
+  <li class="active">Home</li>
+</ul>
+
 Welcome to {{ company }}
 
 <h3><a href="timesheet">Record your volunteer time</a></h3>
 <h3><a href="transaction">Enter a transaction</a></h3>
+{% endblock %}
