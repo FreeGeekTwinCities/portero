@@ -36,13 +36,9 @@ class TimesheetForm(Form):
 
 #Set up transaction fields
 class DonationForm(Form):
-	transaction_type = SelectField('Volunteer', choices=[('sale', 'Sale'), ('purchase', 'Donation')])
-	date = DateField('Date')
-	hours = DecimalField('Hours')
 	description = TextField('Description')
 	party = SelectField('Donor')
-	work = SelectField('Work')
-
+	date = DateField('Date')
 
 #Display welcome page at root of site
 @app.route("/")
@@ -79,9 +75,17 @@ def timesheet_report(volunteer_id):
 	timesheet_lines = [timesheet_line for timesheet_line in TimesheetLine.find([('employee', '=', volunteer_id)])]
 	return render_template('timesheet_report.html', timesheet_lines=timesheet_lines)
 
-@app.route("/donation")
+@app.route("/donation", methods=['GET', 'POST'])
 def enter_donation():
-	
+	if request.method == 'POST':
+		donation = Purchase()
+		print donation
+		donation.party = Party(int(request.form['party']))
+		donation.purchase_date = datetime.strptime(request.form['date'], "%m/%d/%Y").date()
+		donation.description = request.form['description']
+		print donation
+		donation.save()
+		
 	#Generate timesheet entry form (defined in TimesheetForm above)
 	form = DonationForm(request.form)
 	#Get list of active parties, and add these as options for "party" field
