@@ -76,7 +76,7 @@ def enter_timesheet():
 
 @app.route("/timesheet/volunteer/<int:volunteer_id>")
 def timesheet_report(volunteer_id):
-	timesheet_lines = [(timesheet_line.date, timesheet_line.hours, timesheet_line.work.name, timesheet_line.description) for timesheet_line in TimesheetLine.find([('employee', '=', volunteer_id)])]
+	timesheet_lines = [timesheet_line for timesheet_line in TimesheetLine.find([('employee', '=', volunteer_id)])]
 	return render_template('timesheet_report.html', timesheet_lines=timesheet_lines)
 
 @app.route("/donation")
