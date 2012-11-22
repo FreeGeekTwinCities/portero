@@ -94,5 +94,9 @@ def enter_donation():
 	#Finally, render timesheet page
 	return render_template('donation.html', form=form, company=company)
 	
+@app.route("/sale")
+def enter_sale():
+	return "Nothing to see here - yet!"
+
 if __name__ == "__main__":
     app.run()

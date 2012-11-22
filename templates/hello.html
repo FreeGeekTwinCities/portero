@@ -7,6 +7,7 @@
 
 Welcome to {{ company }}
 
-<h3><a href="timesheet">Record your volunteer time</a></h3>
-<h3><a href="donation">Enter a donation</a></h3>
+<h3><a href="timesheet"><img width="100" src="{{ url_for('static', filename='img/clock.png') }}"/>Record your volunteer time</a></h3>
+<h3><a href="donation"><img width="100" src="{{ url_for('static', filename='img/donation-hands.png') }}"/>Enter a donation</a></h3>
+<h3><a href="sale"><img width="100" src="{{ url_for('static', filename='img/dollar.png') }}"/>Sell hardware</a></h3>
 {% endblock %}
