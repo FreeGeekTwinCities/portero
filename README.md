@@ -1,1 +1,1 @@
-A simplified Tryton web interface for common tasks at Free Geek.
+A simplified [Tryton](http://tryton.org) web interface for common tasks at [Free Geek Twin Cities](http://freegeektwincities.org).
