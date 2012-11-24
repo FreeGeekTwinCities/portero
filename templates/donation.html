@@ -16,17 +16,18 @@
 	</dl>
 </form>
 
-{{ request }}
-{{ request.form }}
-{{ donation }}
-
 <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/bootstrap-datepicker.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bootstrap-typeahead.js') }}"></script>
 <script type="text/javascript">
     $(document).ready(function() {
-        $('#date').datepicker({format: 'mm/dd/yyyy'});
+		var parties = {{ parties|safe }}
+		console.log(parties)
+		$('#date').datepicker({format: 'yyyy-mm-dd'});
         var now = new Date();
         $('#date').datepicker('setValue', now);
+        $('#party').typeahead({source: parties, items:5});
+        $('#party').attr('autocomplete', 'off');
     });
 </script>
 {% endblock %}

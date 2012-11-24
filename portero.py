@@ -6,6 +6,7 @@ from flask.ext.bootstrap import Bootstrap
 from wtforms import Form, DateField, DecimalField, TextField, SelectField, validators
 from proteus import config, Model
 from datetime import date, datetime
+import json
 
 config = config.set_trytond(database_name='test', user='admin', password='test')
 print config
@@ -23,6 +24,7 @@ TimesheetLine = Model.get('timesheet.line')
 Sale = Model.get('sale.sale')
 Purchase = Model.get('purchase.purchase')
 Party = Model.get('party.party')
+Parties = [('%s : %s' % (party.id, party.name)) for party in Party.find()]
 
 app = Flask(__name__)
 app.debug = True
@@ -39,7 +41,7 @@ class TimesheetForm(Form):
 #Set up transaction fields
 class DonationForm(Form):
 	description = TextField('Description')
-	party = SelectField('Donor')
+	party = TextField('Donor')
 	date = DateField('Date')
 
 #Display welcome page at root of site
@@ -73,22 +75,27 @@ def timesheet_report(volunteer_id):
 
 @app.route("/donation", methods=['GET', 'POST'])
 def enter_donation():
+	Parties = [('%s : %s' % (party.id, party.name)) for party in Party.find()]
+
+	#Generate timesheet entry form (defined in TimesheetForm above)
+	form = DonationForm(request.form)
+
 	if request.method == 'POST':
 		donation = Purchase()
-		print donation
-		donation.party = Party(int(request.form['party']))
-		donation.purchase_date = datetime.strptime(request.form['date'], "%m/%d/%Y").date()
+		if ':' in request.form['party']:
+			donation.party = Party(int(request.form['party'][:request.form['party'].find(':')]))
+		else:
+			new_party = Party()
+			new_party.name = request.form['party']
+			new_party.save()
+			donation.party = new_party
+		donation.purchase_date = datetime.strptime(request.form['date'], "%Y-%m-%d").date()
 		donation.description = request.form['description']
 		print donation
 		donation.save()
 		
-	#Generate timesheet entry form (defined in TimesheetForm above)
-	form = DonationForm(request.form)
-	#Get list of active parties, and add these as options for "party" field
-	form.party.choices = [(party.id, party.name) for party in Party.find()]
-
 	#Finally, render timesheet page
-	return render_template('donation.html', form=form, company=company)
+	return render_template('donation.html', form=form, company=company, parties=json.dumps(Parties))
 	
 @app.route("/sale")
 def enter_sale():
