@@ -25,7 +25,7 @@
 <script src="{{ url_for('static', filename='js/bootstrap-datepicker.js') }}"></script>
 <script type="text/javascript">
     $(document).ready(function() {
-        $('#date').datepicker({format: 'mm/dd/yyyy'});
+        $('#date').datepicker({format: 'yyyy-mm-dd'});
         var now = new Date();
         $('#date').datepicker('setValue', now);
     });

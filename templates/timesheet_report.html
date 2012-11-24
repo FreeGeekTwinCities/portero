@@ -13,18 +13,11 @@
 <table class="table table-striped table-bordered">
 	<thead><tr><th>Date</th><th>Hours</th><th>Work</th><th>Description</th></tr></thead>
 	<tbody>
-	{% for line in timesheet_lines|sort(attribute='date') %}
+	<!-- take all of the timesheet lines for a volunteer, sort them in reverse order by date (so the latest entry will be at the top), and display them in a table-->
+	{% for line in timesheet_lines|sort(attribute='date', reverse=True) %}
 		<tr><td>{{ line.date }}</td><td>{{ line.hours }}</td><td>{{ line.work.name }}</td><td>{{ line.description }}</td></tr>
 	{% endfor %}
 	</tbody>
 </table>
 
-{{ request }}
-
-<script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/bootstrap-datepicker.js') }}"></script>
-<script type="text/javascript">
-    $(document).ready(function() {
-    });
-</script>
 {% endblock %}

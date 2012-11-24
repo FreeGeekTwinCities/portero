@@ -16,7 +16,9 @@ company = Company.find()[0].party.name
 
 #Get Tryton models for later use
 Work = Model.get('timesheet.work')
+Works = [(work.id, work.name) for work in Work.find()]
 Employee = Model.get('company.employee')
+Employees = [(employee.id, employee.party.name) for employee in Employee.find([('company', '=', 1)])]
 TimesheetLine = Model.get('timesheet.line')
 Sale = Model.get('sale.sale')
 Purchase = Model.get('purchase.purchase')
@@ -28,11 +30,11 @@ Bootstrap(app)
 
 #Set up timesheet fields for later use
 class TimesheetForm(Form):
-	date = DateField('Date')
-	hours = DecimalField('Hours')
-	description = TextField('Description')
-	employee = SelectField('Volunteer')
-	work = SelectField('Work')
+	date = DateField('Date', [validators.Required()])
+	hours = DecimalField('Hours', [validators.NumberRange(min=0.25, max=24, message='Please enter the number of hours you worked.')])
+	description = TextField('Description', [validators.Optional()])
+	employee = SelectField('Volunteer', [validators.Required()], choices=Employees, coerce=int)
+	work = SelectField('Work', [validators.Required()], choices=Works, coerce=int)
 
 #Set up transaction fields
 class DonationForm(Form):
@@ -47,28 +49,22 @@ def hello():
 
 @app.route("/timesheet", methods=['GET', 'POST'])
 def enter_timesheet():
+	#Generate timesheet entry form (defined in TimesheetForm above)
+	form = TimesheetForm(request.form)
+	
 	#If there's POST data, construct & save a new timesheet line
-	if request.method == 'POST':
+	if request.method == 'POST' and form.validate():
 		line = TimesheetLine()
 		line.hours = float(request.form['hours'])
 		line.description = request.form['description']
 		line.work = Work(request.form['work'])
 		line.employee = Employee(request.form['employee'])
-		line.date = datetime.strptime(request.form['date'], "%m/%d/%Y").date()
-		print line
+		line.date = datetime.strptime(request.form['date'], "%Y-%m-%d").date()
 		line.save()
 		return redirect(url_for('timesheet_report', volunteer_id=request.form['employee'], name=line.employee.name, work=line.work.name, ))
 
-	else:
-		#Generate timesheet entry form (defined in TimesheetForm above)
-		form = TimesheetForm(request.form)
-		#Get list of available work types, and add them as options for "work" field on form
-		form.work.choices = [(work.id, work.name) for work in Work.find()]
-		#Get list of active volunteers/employees, and add these as options for "employee" field
-		form.employee.choices = [(employee.id, employee.party.name) for employee in Employee.find([('company', '=', 1)])]
-
-		#Finally, render timesheet page
-		return render_template('timesheet.html', form=form, company=company)
+	#Finally, render timesheet page
+	return render_template('timesheet.html', form=form, company=company)
 
 @app.route("/timesheet/volunteer/<int:volunteer_id>")
 def timesheet_report(volunteer_id):
