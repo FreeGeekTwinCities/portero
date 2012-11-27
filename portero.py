@@ -101,24 +101,27 @@ def enter_donation():
 		donation.description = request.form['description']
 		donation.currency = Currency(152)
 		donation.save()
-		print donation.__dict__
-		print donation.id
 		
+		#Once donation has been created add item 'line' to it
 		donation_line = donation.lines.new()
 		donation_line.purchase = Purchase(donation.id)
 		donation_line.type = 'line' 
-		donation_line.quantity = Decimal(request.form['item_quantity']).quantize(Decimal('.01'), rounding=ROUND_DOWN)
+		donation_line.quantity = Decimal(request.form['item_quantity'])
 		donation_line.product = Product(int(request.form['item_type']))
 		donation_line.description = donation_line.product.name
 		donation_line.unit = Unit(1)
 		donation_line.unit_price = Decimal('0.0000')
-		print donation_line
 		donation_line.save()
-		print donation_line
+		return redirect(url_for('donation_receipt', donation_id=donation.id))
 		
 	#Finally, render timesheet page
 	return render_template('donation.html', form=form, company=company, parties=json.dumps(Parties))
 	
+@app.route("/donation/receipt/<int:donation_id>")
+def donation_receipt(donation_id):
+	donation = Purchase(donation_id)
+	return render_template('receipt.html', company=company, transaction=donation, date=donation.purchase_date, transaction_type='Donation')
+
 @app.route("/sale")
 def enter_sale():
 	return "Nothing to see here - yet!"

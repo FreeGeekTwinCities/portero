@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="container-fluid">
+  <div class="row-fluid">
+    <div class="span4">
+		<div class="logo" style="font-family:'UbuntuMono-Regular', monospace; font-size:2em; width:200px; text-transform:uppercase; text-align:center; float:left; border:5px solid #000; margin:0; padding:10px">Free Geek<br/>Twin Cities</div>
+
+		<p>{{ company }}</p>
+		
+		<p>
+		<strong>{{ transaction.party.name }}</strong><br/>
+		{{ transaction.party.email }}
+		</p>
+		
+		<p>{{ date }}</p>
+	</div>
+	<div class="span4" id="disclaimer">
+		<p id="donation_disclaimer">Free Geek Twin Cities is a tax-exempt, not-for profit organization organized under Section 501(c)3 of the Internal Revenue Code. All donations are fully tax deductable to the extent allowable by law. Donations are non-refundable.</p>
+		<p id="sale_disclaimer">All sales are final. No cash refunds.</p>
+	</div>
+	<div class="span4">
+		<div class="receipt-header" style="font-family:'UbuntuMono-Regular', monospace; font-size:2em; text-transform:uppercase; text-align:center; float:right; font-weight:700; border:5px solid #000; padding:20px">{{ transaction_type }}<br/>Receipt</div>
+
+		<p style="text-align:right">Free Geek Twin Cities is an<br/>all-volunteer organization that <br/>reuses and recycles computers<br/>to provide technical education<br/>and access to our community.</p>
+	</div>
+    <table class="table table-striped table-bordered">
+        <tr><th>Quantity</th><th>Description</th><th>Unit Price</th><th>Extended Price</th></tr>
+        {% for line in transaction.lines %}
+            <tr>
+                <td>{{line.quantity}}</td>
+                <td>{{line.description}}</td>
+                <td>{{line.unit_price}}</td>
+            </tr>
+        {% endfor %}
+    </table>
+ 
+{% endblock %}
