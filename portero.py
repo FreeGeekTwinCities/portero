@@ -6,6 +6,7 @@ from flask.ext.bootstrap import Bootstrap
 from wtforms import Form, DateField, DecimalField, TextField, SelectField, validators
 from proteus import config, Model
 from datetime import date, datetime
+from decimal import *
 import json
 
 config = config.set_trytond(database_name='test', user='admin', password='test')
@@ -25,6 +26,11 @@ Sale = Model.get('sale.sale')
 Purchase = Model.get('purchase.purchase')
 Party = Model.get('party.party')
 Parties = [('%s : %s' % (party.id, party.name)) for party in Party.find()]
+Product = Model.get('product.product')
+Products = [(product.id, product.template.name) for product in Product.find()]
+PurchaseLine = Model.get('purchase.line')
+Currency = Model.get('currency.currency')
+Unit = Model.get('product.uom')
 
 app = Flask(__name__)
 app.debug = True
@@ -43,6 +49,8 @@ class DonationForm(Form):
 	description = TextField('Description')
 	party = TextField('Donor')
 	date = DateField('Date')
+	item_quantity = DecimalField('Number Donated')
+	item_type = SelectField('Item Type', [validators.Required()], choices=Products, coerce=int)
 
 #Display welcome page at root of site
 @app.route("/")
@@ -91,8 +99,22 @@ def enter_donation():
 			donation.party = new_party
 		donation.purchase_date = datetime.strptime(request.form['date'], "%Y-%m-%d").date()
 		donation.description = request.form['description']
-		print donation
+		donation.currency = Currency(152)
 		donation.save()
+		print donation.__dict__
+		print donation.id
+		
+		donation_line = donation.lines.new()
+		donation_line.purchase = Purchase(donation.id)
+		donation_line.type = 'line' 
+		donation_line.quantity = Decimal(request.form['item_quantity']).quantize(Decimal('.01'), rounding=ROUND_DOWN)
+		donation_line.product = Product(int(request.form['item_type']))
+		donation_line.description = donation_line.product.name
+		donation_line.unit = Unit(1)
+		donation_line.unit_price = Decimal('0.0000')
+		print donation_line
+		donation_line.save()
+		print donation_line
 		
 	#Finally, render timesheet page
 	return render_template('donation.html', form=form, company=company, parties=json.dumps(Parties))
