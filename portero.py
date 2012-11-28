@@ -14,7 +14,8 @@ print config
 
 #Look up company model, and get name of first company - we'll use this for e.g. welcome page
 Company = Model.get('company.company')
-company = Company.find()[0].party.name
+company = Company.find()[0].party
+company_address = company.addresses[0]
 
 #Get Tryton models for later use
 Work = Model.get('timesheet.work')
@@ -44,12 +45,20 @@ class TimesheetForm(Form):
 	employee = SelectField('Volunteer', [validators.Required()], choices=Employees, coerce=int)
 	work = SelectField('Work', [validators.Required()], choices=Works, coerce=int)
 
-#Set up transaction fields
+#Set up donation fields
 class DonationForm(Form):
 	description = TextField('Description')
 	party = TextField('Donor')
 	date = DateField('Date')
 	item_quantity = DecimalField('Number Donated')
+	item_type = SelectField('Item Type', [validators.Required()], choices=Products, coerce=int)
+
+#Set up sales fields
+class SaleForm(Form):
+	description = TextField('Description')
+	party = TextField('Customer')
+	date = DateField('Date')
+	item_quantity = DecimalField('Number Purchased')
 	item_type = SelectField('Item Type', [validators.Required()], choices=Products, coerce=int)
 
 #Display welcome page at root of site
@@ -83,9 +92,7 @@ def timesheet_report(volunteer_id):
 
 @app.route("/donation", methods=['GET', 'POST'])
 def enter_donation():
-	Parties = [('%s : %s' % (party.id, party.name)) for party in Party.find()]
-
-	#Generate timesheet entry form (defined in TimesheetForm above)
+	#Generate donation entry form (defined above)
 	form = DonationForm(request.form)
 
 	if request.method == 'POST':
@@ -98,7 +105,6 @@ def enter_donation():
 			new_party.save()
 			donation.party = new_party
 		donation.purchase_date = datetime.strptime(request.form['date'], "%Y-%m-%d").date()
-		donation.description = request.form['description']
 		donation.currency = Currency(152)
 		donation.save()
 		
@@ -110,21 +116,54 @@ def enter_donation():
 		donation_line.product = Product(int(request.form['item_type']))
 		donation_line.description = donation_line.product.name
 		donation_line.unit = Unit(1)
-		donation_line.unit_price = Decimal('0.0000')
+		donation_line.unit_price = donation_line.product.cost_price
 		donation_line.save()
 		return redirect(url_for('donation_receipt', donation_id=donation.id))
 		
-	#Finally, render timesheet page
+	#Finally, render donation page
 	return render_template('donation.html', form=form, company=company, parties=json.dumps(Parties))
 	
 @app.route("/donation/receipt/<int:donation_id>")
 def donation_receipt(donation_id):
 	donation = Purchase(donation_id)
-	return render_template('receipt.html', company=company, transaction=donation, date=donation.purchase_date, transaction_type='Donation')
+	return render_template('receipt.html', company=company, company_address=company_address, transaction=donation, date=donation.purchase_date, transaction_type='Donation')
 
-@app.route("/sale")
+@app.route("/sale", methods=['GET', 'POST'])
 def enter_sale():
-	return "Nothing to see here - yet!"
+	#Generate sale entry form (defined above)
+	form = SaleForm(request.form)
+
+	if request.method == 'POST':
+		sale = Sale()
+		if ':' in request.form['party']:
+			sale.party = Party(int(request.form['party'][:request.form['party'].find(':')]))
+		else:
+			new_party = Party()
+			new_party.name = request.form['party']
+			new_party.save()
+			sale.party = new_party
+		sale.sale_date = datetime.strptime(request.form['date'], "%Y-%m-%d").date()
+		sale.save()
+		
+		#Once parent 'sale' has been created add item 'line' to it
+		sale_line = sale.lines.new()
+		sale_line.sale = Sale(sale.id)
+		sale_line.type = 'line' 
+		sale_line.quantity = Decimal(request.form['item_quantity'])
+		sale_line.product = Product(int(request.form['item_type']))
+		sale_line.description = sale_line.product.name
+		sale_line.unit = Unit(1)
+		sale_line.unit_price = sale_line.product.list_price
+		sale_line.save()
+		return redirect(url_for('sale_receipt', sale_id=sale.id))
+		
+	#Finally, render sale page
+	return render_template('sale.html', form=form, company=company, parties=json.dumps(Parties))
+	
+@app.route("/sale/receipt/<int:sale_id>")
+def sale_receipt(sale_id):
+	sale = Sale(sale_id)
+	return render_template('receipt.html', company=company, company_address=company_address, transaction=sale, date=sale.sale_date, transaction_type='Sale')
 
 if __name__ == "__main__":
     app.run()
