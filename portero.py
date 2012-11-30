@@ -52,14 +52,16 @@ class DonationForm(Form):
 	date = DateField('Date')
 	item_quantity = DecimalField('Number Donated')
 	item_type = SelectField('Item Type', [validators.Required()], choices=Products, coerce=int)
+	item_description = TextField('Item Description')
 
 #Set up sales fields
 class SaleForm(Form):
 	description = TextField('Description')
 	party = TextField('Customer')
 	date = DateField('Date')
-	item_quantity = DecimalField('Number Purchased')
-	item_type = SelectField('Item Type', [validators.Required()], choices=Products, coerce=int)
+	item1_quantity = DecimalField('Number Purchased')
+	item1_type = SelectField('Item Type', [validators.Required()], choices=Products, coerce=int)
+	item1_description = TextField('Item Description')
 
 #Display welcome page at root of site
 @app.route("/")
@@ -149,9 +151,12 @@ def enter_sale():
 		sale_line = sale.lines.new()
 		sale_line.sale = Sale(sale.id)
 		sale_line.type = 'line' 
-		sale_line.quantity = Decimal(request.form['item_quantity'])
-		sale_line.product = Product(int(request.form['item_type']))
-		sale_line.description = sale_line.product.name
+		sale_line.quantity = Decimal(request.form['item1_quantity'])
+		sale_line.product = Product(int(request.form['item1_type']))
+		if request.form['item1_description']:
+			sale_line.description = request.form['item1_description']
+		else:
+			sale_line.description = sale_line.product.name
 		sale_line.unit = Unit(1)
 		sale_line.unit_price = sale_line.product.list_price
 		sale_line.save()
