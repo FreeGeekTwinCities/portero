@@ -51,12 +51,25 @@ class TimesheetForm(Form):
 #Set up transaction (donation/sale) fields
 class TransactionForm(Form):
 	description = TextField('Description')
-	party = TextField('Donor')
+	party = TextField('Donor/Purchaser')
 	date = DateField('Date')
-	item1_quantity = DecimalField('Number Donated')
-	item1_type = SelectField('Item Type', [validators.Required()], choices=Products, coerce=int)
-	item1_description = TextField('Item Description')
-
+	#TODO: find a better way to create multiple lines/fields!
+	item1_quantity = DecimalField('Number of Items')
+	item1_type = SelectField('Item Type', choices=Products, coerce=int)
+	item1_description = TextField('Item Description', [validators.Optional()])
+	item2_quantity = DecimalField('Number of Items', [validators.Optional()])
+	item2_type = SelectField('Item Type', choices=Products, coerce=int)
+	item2_description = TextField('Item Description', [validators.Optional()])
+	item3_quantity = DecimalField('Number of Items', [validators.Optional()])
+	item3_type = SelectField('Item Type', choices=Products, coerce=int)
+	item3_description = TextField('Item Description', [validators.Optional()])
+	item4_quantity = DecimalField('Number of Items', [validators.Optional()])
+	item4_type = SelectField('Item Type', choices=Products, coerce=int)
+	item4_description = TextField('Item Description', [validators.Optional()])
+	item5_quantity = DecimalField('Number of Items', [validators.Optional()])
+	item5_type = SelectField('Item Type', choices=Products, coerce=int)
+	item5_description = TextField('Item Description', [validators.Optional()])
+	
 #Display welcome page at root of site
 @app.route("/")
 def hello():
@@ -105,15 +118,21 @@ def enter_donation():
 		donation.save()
 		
 		#Once donation has been created add item 'line' to it
-		donation_line = donation.lines.new()
-		donation_line.purchase = Purchase(donation.id)
-		donation_line.type = 'line' 
-		donation_line.quantity = Decimal(request.form['item1_quantity'])
-		donation_line.product = Product(int(request.form['item1_type']))
-		donation_line.description = donation_line.product.name
-		donation_line.unit = Unit(1)
-		donation_line.unit_price = donation_line.product.cost_price
-		donation_line.save()
+		for line_num in range(1, 6):
+			if request.form['item%s_quantity' % line_num]:
+				donation_line = donation.lines.new()
+				donation_line.purchase = Purchase(donation.id)
+				donation_line.type = 'line' 
+				donation_line.quantity = Decimal(request.form['item%s_quantity' % line_num])
+				donation_line.product = Product(int(request.form['item%s_type' % line_num]))
+				if request.form['item%s_description' % line_num]:
+					donation_line.description = '%s - %s' % (donation_line.product.name, request.form['item%s_description' % line_num])
+				else:
+					donation_line.description = donation_line.product.name
+				donation_line.unit = Unit(1)
+				donation_line.unit_price = donation_line.product.cost_price
+				donation_line.save()
+				
 		return redirect(url_for('donation_receipt', donation_id=donation.id))
 		
 	#Finally, render donation page
@@ -140,20 +159,24 @@ def enter_sale():
 			sale.party = new_party
 		sale.sale_date = datetime.strptime(request.form['date'], "%Y-%m-%d").date()
 		sale.save()
+		print sale
 		
-		#Once parent 'sale' has been created add item 'line' to it
-		sale_line = sale.lines.new()
-		sale_line.sale = Sale(sale.id)
-		sale_line.type = 'line' 
-		sale_line.quantity = Decimal(request.form['item1_quantity'])
-		sale_line.product = Product(int(request.form['item1_type']))
-		if request.form['item1_description']:
-			sale_line.description = '%s - %s' % (sale_line.product.name, request.form['item1_description'])
-		else:
-			sale_line.description = sale_line.product.name
-		sale_line.unit = Unit(1)
-		sale_line.unit_price = sale_line.product.list_price
-		sale_line.save()
+		#Once parent 'sale' has been created, add item 'lines' to it
+		for line_num in range(1, 6):
+			print line_num 
+			if request.form['item%s_quantity' % line_num]:
+				sale_line = sale.lines.new()
+				sale_line.sale = Sale(sale.id)
+				sale_line.type = 'line' 
+				sale_line.quantity = Decimal(request.form['item%s_quantity' % line_num])
+				sale_line.product = Product(int(request.form['item%s_type' % line_num]))
+				if request.form['item%s_description' % line_num]:
+					sale_line.description = '%s - %s' % (sale_line.product.name, request.form['item%s_description' % line_num])
+				else:
+					sale_line.description = sale_line.product.name
+				sale_line.unit = Unit(1)
+				sale_line.unit_price = sale_line.product.list_price
+				sale_line.save()
 		return redirect(url_for('sale_receipt', sale_id=sale.id))
 		
 	#Finally, render sale page

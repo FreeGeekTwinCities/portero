@@ -14,11 +14,18 @@
 <form class="form form-inline" action="{{ url_for('enter_%s' % transaction_type) }}" method=post>
 	{{ wtf.form_errors(form, "only") }}
 
-	{{ wtf.horizontal_field(form.party) }}
-	{{ wtf.horizontal_field(form.date) }}
-	{{ wtf.inline_field(form.item1_quantity) }}
-	{{ wtf.inline_field(form.item1_type) }}
-	{{ wtf.inline_field(form.item1_description) }}
+	{{ wtf.inline_field(form.party) }} {{ wtf.inline_field(form.date) }}
+	
+	<table>
+		<thead><th>Quantity</th><th>Item Type</th><th>Item Description</th></thead>
+		<tbody>
+			<tr><td>{{ form.item1_quantity|safe }}</td><td>{{ form.item1_type|safe }}</td><td>{{ form.item1_description|safe }}</td></tr>
+			<tr><td>{{ form.item2_quantity|safe }}</td><td>{{ form.item2_type|safe }}</td><td>{{ form.item2_description|safe }}</td></tr>
+			<tr><td>{{ form.item3_quantity|safe }}</td><td>{{ form.item3_type|safe }}</td><td>{{ form.item3_description|safe }}</td></tr>
+			<tr><td>{{ form.item4_quantity|safe }}</td><td>{{ form.item4_type|safe }}</td><td>{{ form.item4_description|safe }}</td></tr>
+			<tr><td>{{ form.item5_quantity|safe }}</td><td>{{ form.item5_type|safe }}</td><td>{{ form.item5_description|safe }}</td></tr>
+		</tbody>
+	</table>
 	
 	<div class="form-actions">
 		<button name="action_save" type="submit" class="btn btn-primary">Save changes</button>
@@ -37,6 +44,7 @@
         $('#date').datepicker('setValue', now);
         $('#party').typeahead({source: parties, items:5});
         $('#party').attr('autocomplete', 'off');
+        $('#item2_quantity').attr('required', False);
     });
 </script>
 {% endblock %}

@@ -4,7 +4,7 @@
 <div class="container-fluid">
   <div class="row-fluid">
     <div class="span4">
-		<div class="logo" style="font-family:'UbuntuMono-Regular', monospace; font-size:2em; width:200px; text-transform:uppercase; text-align:center; float:left; border:5px solid #000; margin:0; padding:10px">Free Geek<br/>Twin Cities</div>
+		<div class="logo" style="font-family:'UbuntuMono-Regular', monospace; font-size:2em; width:200px; text-transform:uppercase; text-align:center; float:left; font-weight:700; border:5px solid #000; margin:0; padding:20px">{{ company.name }}</div>
 
 		<p style="clear:both">{{ company.name }}<br/>
 		{{ company_address.street }}<br/>
@@ -29,8 +29,12 @@
             <tr>
                 <td>{{ line.quantity }}</td>
                 <td>{{ line.description }}</td>
-                <td>${{ line.unit_price|round(precision=2, method='common') }}</td>
-                <td>${{ line.unit_price|float * line.quantity }}</td>
+                {% if line.unit_price %}
+					<td>${{ line.unit_price }}</td>
+					<td>${{ line.unit_price|float * line.quantity }}</td>
+				{% else %}
+					<td></td><td></td>
+				{% endif %}
             </tr>
         {% endfor %}
     </table>
