@@ -9,3 +9,6 @@ Portero is designed to be installed on the same server as Tryton, so you'll need
 
 Once Tryton's up and running, you'll need to have [Flask](http://flask.pocoo.org/) and a couple of additional packages ([Flask-WTF](http://pypi.python.org/pypi/Flask-WTF) for dealing with forms, and [Flask-Bootstrap](http://pypi.python.org/pypi/Flask-Bootstrap) 'cause Brian's not too CSS-savvy) - these can be installed by running:
 	pip install 'Flask Flask-WTF Flask-Bootstrap'
+
+Before running, you'll need to copy portero_config.py.dist to portero_config.py and edit as appropriate
+

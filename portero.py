@@ -4,13 +4,20 @@ pkg_resources.require("Flask")
 from flask import Flask, render_template, request, url_for, redirect
 from flask.ext.bootstrap import Bootstrap
 from wtforms import Form, DateField, DecimalField, TextField, SelectField, validators
-from proteus import config, Model
+from proteus import config as tryton_config, Model
 from datetime import date, datetime
 from decimal import *
 import json
+import portero_config
 
-config = config.set_trytond(database_name='test', user='admin', password='test')
-print config
+app = Flask(__name__)
+app.config.from_object('portero_config')
+print app.config
+app.debug = app.config['DEBUG']
+Bootstrap(app)
+
+tryton_config = tryton_config.set_trytond(database_name=app.config['TRYTON_DB'], user=app.config['TRYTON_USER'], password=app.config['TRYTON_PASSWORD'])
+print tryton_config
 
 #Look up company model, and get name of first company - we'll use this for e.g. welcome page
 Company = Model.get('company.company')
@@ -32,10 +39,6 @@ Products = [(product.id, product.template.name) for product in Product.find()]
 PurchaseLine = Model.get('purchase.line')
 Currency = Model.get('currency.currency')
 Unit = Model.get('product.uom')
-
-app = Flask(__name__)
-app.debug = True
-Bootstrap(app)
 
 #Set up timesheet fields for later use
 class TimesheetForm(Form):
