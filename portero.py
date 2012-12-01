@@ -14,10 +14,10 @@ app = Flask(__name__)
 app.config.from_object('portero_config')
 print app.config
 app.debug = app.config['DEBUG']
+    
 Bootstrap(app)
 
 tryton_config = tryton_config.set_trytond(database_name=app.config['TRYTON_DB'], user=app.config['TRYTON_USER'], password=app.config['TRYTON_PASSWORD'])
-print tryton_config
 
 #Look up company model, and get name of first company - we'll use this for e.g. welcome page
 Company = Model.get('company.company')
@@ -159,11 +159,9 @@ def enter_sale():
 			sale.party = new_party
 		sale.sale_date = datetime.strptime(request.form['date'], "%Y-%m-%d").date()
 		sale.save()
-		print sale
 		
 		#Once parent 'sale' has been created, add item 'lines' to it
 		for line_num in range(1, 6):
-			print line_num 
 			if request.form['item%s_quantity' % line_num]:
 				sale_line = sale.lines.new()
 				sale_line.sale = Sale(sale.id)

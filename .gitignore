@@ -1,3 +1,4 @@
 *~
 *.pyc
 portero_config.py
+*.log
