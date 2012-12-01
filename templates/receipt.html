@@ -27,10 +27,10 @@
         <tr><th>Quantity</th><th>Description</th><th>Unit Price</th><th>Extended Price</th></tr>
         {% for line in transaction.lines %}
             <tr>
-                <td>{{line.quantity}}</td>
-                <td>{{line.description}}</td>
-                <td>{{line.unit_price}}</td>
-                <td>{{ line.unit_price|float * line.quantity }}</td>
+                <td>{{ line.quantity }}</td>
+                <td>{{ line.description }}</td>
+                <td>${{ line.unit_price|round(precision=2, method='common') }}</td>
+                <td>${{ line.unit_price|float * line.quantity }}</td>
             </tr>
         {% endfor %}
     </table>

@@ -48,21 +48,12 @@ class TimesheetForm(Form):
 	employee = SelectField('Volunteer', [validators.Required()], choices=Employees, coerce=int)
 	work = SelectField('Work', [validators.Required()], choices=Works, coerce=int)
 
-#Set up donation fields
-class DonationForm(Form):
+#Set up transaction (donation/sale) fields
+class TransactionForm(Form):
 	description = TextField('Description')
 	party = TextField('Donor')
 	date = DateField('Date')
-	item_quantity = DecimalField('Number Donated')
-	item_type = SelectField('Item Type', [validators.Required()], choices=Products, coerce=int)
-	item_description = TextField('Item Description')
-
-#Set up sales fields
-class SaleForm(Form):
-	description = TextField('Description')
-	party = TextField('Customer')
-	date = DateField('Date')
-	item1_quantity = DecimalField('Number Purchased')
+	item1_quantity = DecimalField('Number Donated')
 	item1_type = SelectField('Item Type', [validators.Required()], choices=Products, coerce=int)
 	item1_description = TextField('Item Description')
 
@@ -98,7 +89,7 @@ def timesheet_report(volunteer_id):
 @app.route("/donation", methods=['GET', 'POST'])
 def enter_donation():
 	#Generate donation entry form (defined above)
-	form = DonationForm(request.form)
+	form = TransactionForm(request.form)
 
 	if request.method == 'POST':
 		donation = Purchase()
@@ -117,8 +108,8 @@ def enter_donation():
 		donation_line = donation.lines.new()
 		donation_line.purchase = Purchase(donation.id)
 		donation_line.type = 'line' 
-		donation_line.quantity = Decimal(request.form['item_quantity'])
-		donation_line.product = Product(int(request.form['item_type']))
+		donation_line.quantity = Decimal(request.form['item1_quantity'])
+		donation_line.product = Product(int(request.form['item1_type']))
 		donation_line.description = donation_line.product.name
 		donation_line.unit = Unit(1)
 		donation_line.unit_price = donation_line.product.cost_price
@@ -126,7 +117,7 @@ def enter_donation():
 		return redirect(url_for('donation_receipt', donation_id=donation.id))
 		
 	#Finally, render donation page
-	return render_template('donation.html', form=form, company=company, parties=json.dumps(Parties))
+	return render_template('transaction.html', form=form, transaction_type='donation', company=company, parties=json.dumps(Parties))
 	
 @app.route("/donation/receipt/<int:donation_id>")
 def donation_receipt(donation_id):
@@ -136,7 +127,7 @@ def donation_receipt(donation_id):
 @app.route("/sale", methods=['GET', 'POST'])
 def enter_sale():
 	#Generate sale entry form (defined above)
-	form = SaleForm(request.form)
+	form = TransactionForm(request.form)
 
 	if request.method == 'POST':
 		sale = Sale()
@@ -157,7 +148,7 @@ def enter_sale():
 		sale_line.quantity = Decimal(request.form['item1_quantity'])
 		sale_line.product = Product(int(request.form['item1_type']))
 		if request.form['item1_description']:
-			sale_line.description = request.form['item1_description']
+			sale_line.description = '%s - %s' % (sale_line.product.name, request.form['item1_description'])
 		else:
 			sale_line.description = sale_line.product.name
 		sale_line.unit = Unit(1)
@@ -166,7 +157,7 @@ def enter_sale():
 		return redirect(url_for('sale_receipt', sale_id=sale.id))
 		
 	#Finally, render sale page
-	return render_template('sale.html', form=form, company=company, parties=json.dumps(Parties))
+	return render_template('transaction.html', form=form, transaction_type='sale', company=company, parties=json.dumps(Parties))
 	
 @app.route("/sale/receipt/<int:sale_id>")
 def sale_receipt(sale_id):
