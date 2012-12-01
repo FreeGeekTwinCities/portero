@@ -1,0 +1,32 @@
+<VirtualHost *:80>
+        ServerName wyatt
+        ServerAdmin admin@freegeektwincities.org
+
+        WSGIDaemonProcess portero user=tryton group=tryton threads=5
+        WSGIScriptAlias / /var/www/portero/portero.wsgi
+
+        <Directory /var/www/portero>
+                WSGIProcessGroup portero
+                WSGIApplicationGroup %{GLOBAL}
+                Order deny,allow
+                Allow from all
+        </Directory>
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+
+        # Possible values include: debug, info, notice, warn, error, crit,
+        # alert, emerg.
+        LogLevel warn
+
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+    Alias /doc/ "/usr/share/doc/"
+    <Directory "/usr/share/doc/">
+        Options Indexes MultiViews FollowSymLinks
+        AllowOverride None
+        Order deny,allow
+        Deny from all
+        Allow from 127.0.0.0/255.0.0.0 ::1/128
+    </Directory>
+
+</VirtualHost>
