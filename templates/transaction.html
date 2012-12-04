@@ -17,13 +17,13 @@
 	{{ wtf.inline_field(form.party) }} {{ wtf.inline_field(form.date) }}
 	
 	<table>
-		<thead><th>Quantity</th><th>Item Type</th><th>Item Description</th></thead>
+		<thead><th>Quantity</th><th>Item Type</th><th>Item Description</th><th class="price">Unit Price</th></thead>
 		<tbody>
-			<tr><td>{{ form.item1_quantity|safe }}</td><td>{{ form.item1_type|safe }}</td><td>{{ form.item1_description|safe }}</td></tr>
-			<tr><td>{{ form.item2_quantity|safe }}</td><td>{{ form.item2_type|safe }}</td><td>{{ form.item2_description|safe }}</td></tr>
-			<tr><td>{{ form.item3_quantity|safe }}</td><td>{{ form.item3_type|safe }}</td><td>{{ form.item3_description|safe }}</td></tr>
-			<tr><td>{{ form.item4_quantity|safe }}</td><td>{{ form.item4_type|safe }}</td><td>{{ form.item4_description|safe }}</td></tr>
-			<tr><td>{{ form.item5_quantity|safe }}</td><td>{{ form.item5_type|safe }}</td><td>{{ form.item5_description|safe }}</td></tr>
+			<tr><td>{{ form.item1_quantity|safe }}</td><td>{{ form.item1_type|safe }}</td><td>{{ form.item1_description|safe }}</td><td class="price">{{ form.item1_price|safe }}</td></tr>
+			<tr><td>{{ form.item2_quantity|safe }}</td><td>{{ form.item2_type|safe }}</td><td>{{ form.item2_description|safe }}</td><td class="price">{{ form.item2_price|safe }}</td></tr>
+			<tr><td>{{ form.item3_quantity|safe }}</td><td>{{ form.item3_type|safe }}</td><td>{{ form.item3_description|safe }}</td><td class="price">{{ form.item3_price|safe }}</td></tr>
+			<tr><td>{{ form.item4_quantity|safe }}</td><td>{{ form.item4_type|safe }}</td><td>{{ form.item4_description|safe }}</td><td class="price">{{ form.item4_price|safe }}</td></tr>
+			<tr><td>{{ form.item5_quantity|safe }}</td><td>{{ form.item5_type|safe }}</td><td>{{ form.item5_description|safe }}</td><td class="price">{{ form.item5_price|safe }}</td></tr>
 		</tbody>
 	</table>
 	
@@ -44,7 +44,15 @@
         $('#date').datepicker('setValue', now);
         $('#party').typeahead({source: parties, items:5});
         $('#party').attr('autocomplete', 'off');
-        $('#item2_quantity').attr('required', False);
+        var product_prices = {}
+        for (product in {{ product_prices }}) {
+			product_prices[{{ product_prices }}[product][0]] = {{ product_prices }}[product][1]
+		};
+		$('#item1_type').change(function () {$('#item1_price').val(product_prices[$(this).val()])});
+		$('#item2_type').change(function () {$('#item2_price').val(product_prices[$(this).val()])});
+		$('#item3_type').change(function () {$('#item3_price').val(product_prices[$(this).val()])});
+		$('#item4_type').change(function () {$('#item4_price').val(product_prices[$(this).val()])});
+		$('#item5_type').change(function () {$('#item5_price').val(product_prices[$(this).val()])});
     });
 </script>
 {% endblock %}

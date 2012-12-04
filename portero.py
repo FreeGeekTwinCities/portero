@@ -3,7 +3,7 @@ pkg_resources.require("Flask")
 
 from flask import Flask, render_template, request, url_for, redirect
 from flask.ext.bootstrap import Bootstrap
-from wtforms import Form, DateField, DecimalField, TextField, SelectField, validators
+from wtforms import Form, DateField, DecimalField, TextField, SelectField, RadioField, validators
 from proteus import config as tryton_config, Model
 from datetime import date, datetime
 from decimal import *
@@ -28,14 +28,16 @@ company_address = company.addresses[0]
 Work = Model.get('timesheet.work')
 Works = [(work.id, work.name) for work in Work.find()]
 Employee = Model.get('company.employee')
-Employees = [(employee.id, employee.party.name) for employee in Employee.find([('company', '=', 1)])]
+Employees = [('%s : %s' % (employee.id, employee.party.name)) for employee in Employee.find([('company', '=', 1)])]
 TimesheetLine = Model.get('timesheet.line')
 Sale = Model.get('sale.sale')
 Purchase = Model.get('purchase.purchase')
 Party = Model.get('party.party')
 Parties = [('%s : %s' % (party.id, party.name)) for party in Party.find()]
 Product = Model.get('product.product')
-Products = [(product.id, product.template.name) for product in Product.find()]
+product_list = Product.find()
+products = [(product.id, product.template.name) for product in product_list]
+product_prices = [(product.id, float(product.list_price)) for product in product_list]
 PurchaseLine = Model.get('purchase.line')
 Currency = Model.get('currency.currency')
 Unit = Model.get('product.uom')
@@ -45,8 +47,8 @@ class TimesheetForm(Form):
 	date = DateField('Date', [validators.Required()])
 	hours = DecimalField('Hours', [validators.NumberRange(min=0.25, max=24, message='Please enter the number of hours you worked.')])
 	description = TextField('Description', [validators.Optional()])
-	employee = SelectField('Volunteer', [validators.Required()], choices=Employees, coerce=int)
-	work = SelectField('Work', [validators.Required()], choices=Works, coerce=int)
+	employee = TextField('Volunteer')
+	work = RadioField('Work', [validators.Required()], choices=Works, coerce=int)
 
 #Set up transaction (donation/sale) fields
 class TransactionForm(Form):
@@ -55,19 +57,24 @@ class TransactionForm(Form):
 	date = DateField('Date')
 	#TODO: find a better way to create multiple lines/fields!
 	item1_quantity = DecimalField('Number of Items')
-	item1_type = SelectField('Item Type', choices=Products, coerce=int)
+	item1_type = SelectField('Item Type', choices=products, coerce=int)
+	item1_price = DecimalField('Unit Price')
 	item1_description = TextField('Item Description', [validators.Optional()])
 	item2_quantity = DecimalField('Number of Items', [validators.Optional()])
-	item2_type = SelectField('Item Type', choices=Products, coerce=int)
+	item2_type = SelectField('Item Type', choices=products, coerce=int)
+	item2_price = DecimalField('Unit Price')
 	item2_description = TextField('Item Description', [validators.Optional()])
 	item3_quantity = DecimalField('Number of Items', [validators.Optional()])
-	item3_type = SelectField('Item Type', choices=Products, coerce=int)
+	item3_type = SelectField('Item Type', choices=products, coerce=int)
+	item3_price = DecimalField('Unit Price')
 	item3_description = TextField('Item Description', [validators.Optional()])
 	item4_quantity = DecimalField('Number of Items', [validators.Optional()])
-	item4_type = SelectField('Item Type', choices=Products, coerce=int)
+	item4_type = SelectField('Item Type', choices=products, coerce=int)
+	item4_price = DecimalField('Unit Price')
 	item4_description = TextField('Item Description', [validators.Optional()])
 	item5_quantity = DecimalField('Number of Items', [validators.Optional()])
-	item5_type = SelectField('Item Type', choices=Products, coerce=int)
+	item5_type = SelectField('Item Type', choices=products, coerce=int)
+	item5_price = DecimalField('Unit Price')
 	item5_description = TextField('Item Description', [validators.Optional()])
 	
 #Display welcome page at root of site
@@ -81,18 +88,21 @@ def enter_timesheet():
 	form = TimesheetForm(request.form)
 	
 	#If there's POST data, construct & save a new timesheet line
-	if request.method == 'POST' and form.validate():
+	if request.method == 'POST':
 		line = TimesheetLine()
 		line.hours = float(request.form['hours'])
 		line.description = request.form['description']
 		line.work = Work(request.form['work'])
-		line.employee = Employee(request.form['employee'])
+		employee_id = int(request.form['employee'][:request.form['employee'].find(':')])
+		print employee_id
+		line.employee = Employee(employee_id)
+		print line.employee
 		line.date = datetime.strptime(request.form['date'], "%Y-%m-%d").date()
 		line.save()
-		return redirect(url_for('timesheet_report', volunteer_id=request.form['employee'], name=line.employee.name, work=line.work.name, ))
+		return redirect(url_for('timesheet_report', volunteer_id=line.employee.id, name=line.employee.name, work=line.work.name))
 
 	#Finally, render timesheet page
-	return render_template('timesheet.html', form=form, company=company)
+	return render_template('timesheet.html', form=form, company=company, employees=json.dumps(Employees))
 
 @app.route("/timesheet/volunteer/<int:volunteer_id>")
 def timesheet_report(volunteer_id):
@@ -115,6 +125,8 @@ def enter_donation():
 			donation.party = new_party
 		donation.purchase_date = datetime.strptime(request.form['date'], "%Y-%m-%d").date()
 		donation.currency = Currency(152)
+		donation.save()
+		donation.state = 'confirmed'
 		donation.save()
 		
 		#Once donation has been created add item 'line' to it
@@ -141,7 +153,7 @@ def enter_donation():
 @app.route("/donation/receipt/<int:donation_id>")
 def donation_receipt(donation_id):
 	donation = Purchase(donation_id)
-	return render_template('receipt.html', company=company, company_address=company_address, transaction=donation, date=donation.purchase_date, transaction_type='Donation')
+	return render_template('receipt.html', company=company, company_address=company_address, transaction=donation, date=donation.purchase_date, transaction_type='donation', product_prices=json.dumps(product_prices))
 
 @app.route("/sale", methods=['GET', 'POST'])
 def enter_sale():
@@ -159,6 +171,8 @@ def enter_sale():
 			sale.party = new_party
 		sale.sale_date = datetime.strptime(request.form['date'], "%Y-%m-%d").date()
 		sale.save()
+		sale.state = 'confirmed'
+		sale.save()
 		
 		#Once parent 'sale' has been created, add item 'lines' to it
 		for line_num in range(1, 6):
@@ -173,12 +187,12 @@ def enter_sale():
 				else:
 					sale_line.description = sale_line.product.name
 				sale_line.unit = Unit(1)
-				sale_line.unit_price = sale_line.product.list_price
+				sale_line.unit_price = Decimal(request.form['item%s_price' % line_num])
 				sale_line.save()
 		return redirect(url_for('sale_receipt', sale_id=sale.id))
 		
 	#Finally, render sale page
-	return render_template('transaction.html', form=form, transaction_type='sale', company=company, parties=json.dumps(Parties))
+	return render_template('transaction.html', form=form, transaction_type='sale', company=company, parties=json.dumps(Parties), product_prices=json.dumps(product_prices))
 	
 @app.route("/sale/receipt/<int:sale_id>")
 def sale_receipt(sale_id):
