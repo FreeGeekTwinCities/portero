@@ -29,14 +29,17 @@
             <tr>
                 <td>{{ line.quantity }}</td>
                 <td>{{ line.description }}</td>
-                {% if line.unit_price %}
+                {% if line.unit_price and line.amount %}
 					<td>${{ line.unit_price }}</td>
-					<td>${{ line.unit_price|float * line.quantity }}</td>
+					<td>${{ line.amount }}</td>
 				{% else %}
 					<td></td><td></td>
 				{% endif %}
             </tr>
         {% endfor %}
+        {% if transaction.total_amount %}
+			<tr><td colspan=3 style="text-transform:uppercase; font-weight:700; text-align:right">Total:</td><td>${{ transaction.total_amount }}</td></tr>
+        {% endif %}
     </table>
  
 {% endblock %}

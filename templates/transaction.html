@@ -46,7 +46,7 @@
         $('#party').attr('autocomplete', 'off');
         var product_prices = {}
         for (product in {{ product_prices }}) {
-			product_prices[{{ product_prices }}[product][0]] = {{ product_prices }}[product][1]
+			product_prices[{{ product_prices }}[product][0]] = {{ product_prices }}[product][1];
 		};
 		$('#item1_type').change(function () {$('#item1_price').val(product_prices[$(this).val()])});
 		$('#item2_type').change(function () {$('#item2_price').val(product_prices[$(this).val()])});

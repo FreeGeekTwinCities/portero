@@ -126,8 +126,7 @@ def enter_donation():
 		donation.purchase_date = datetime.strptime(request.form['date'], "%Y-%m-%d").date()
 		donation.currency = Currency(152)
 		donation.save()
-		donation.state = 'confirmed'
-		donation.save()
+		print donation.total_amount
 		
 		#Once donation has been created add item 'line' to it
 		for line_num in range(1, 6):
@@ -148,7 +147,7 @@ def enter_donation():
 		return redirect(url_for('donation_receipt', donation_id=donation.id))
 		
 	#Finally, render donation page
-	return render_template('transaction.html', form=form, transaction_type='donation', company=company, parties=json.dumps(Parties))
+	return render_template('transaction.html', form=form, transaction_type='donation', company=company, product_prices=[], parties=json.dumps(Parties))
 	
 @app.route("/donation/receipt/<int:donation_id>")
 def donation_receipt(donation_id):
@@ -171,8 +170,6 @@ def enter_sale():
 			sale.party = new_party
 		sale.sale_date = datetime.strptime(request.form['date'], "%Y-%m-%d").date()
 		sale.save()
-		sale.state = 'confirmed'
-		sale.save()
 		
 		#Once parent 'sale' has been created, add item 'lines' to it
 		for line_num in range(1, 6):
@@ -189,6 +186,8 @@ def enter_sale():
 				sale_line.unit = Unit(1)
 				sale_line.unit_price = Decimal(request.form['item%s_price' % line_num])
 				sale_line.save()
+				
+		print sale.total_amount
 		return redirect(url_for('sale_receipt', sale_id=sale.id))
 		
 	#Finally, render sale page
