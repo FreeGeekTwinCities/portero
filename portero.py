@@ -20,13 +20,13 @@ connection = openerplib.get_connection(hostname=app.config['ERP_HOST'], database
 
 employee_model = connection.get_model("hr.employee")
 employees = employee_model.search_read([("active", "=", True)])
-print employees
+#print employees
 
 employees_signed_out = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees]
 print employees_signed_out
 
 attendance_model = connection.get_model("hr.attendance")
-print attendance_model
+#print attendance_model
 attendances_today = attendance_model.search_read([('day', '=', str(date.today().strftime('%Y-%m-%d')))])
 #attendances = attendance_model.search_read([])
 print attendances_today
@@ -37,15 +37,15 @@ timesheets = timesheet_model.search_read([])
 print timesheets
 
 analytic_model = connection.get_model('account.analytic.account')
-print analytic_model
+#print analytic_model
 analytic_accounts = analytic_model.search_read([])
-for account in analytic_accounts:
-	print account['name']
+#for account in analytic_accounts:
+#	print account['name']
 	
 department_model = connection.get_model('hr.department')
-print department_model
+#print department_model
 departments = department_model.search_read([])
-print departments
+#print departments
 
 app.debug = app.config['DEBUG']
     
@@ -72,17 +72,19 @@ def hello():
 			'employee_id' : employee_id,
 			'company_id' : 1,
 			'date_from' : today,
+			'date_current' : today,
 			'date_to' : today,
-			'department_id' : 1,
+			'department_id' : request.form['work'],
 		}
 		sheet = timesheet_model.create(new_sheet)
 		print sheet
+		now = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 		new_event = {
 			'emp_id' : employee_id,
-			'name' : '2012-12-06 01:24:29',
+			'name' : now,
 			'day' : today,
 			'action' : 'sign_in',
-			'sheet_id' : sheet
+			'sheet_id' : int(sheet)
 		}
 		event = attendance_model.create(new_event)
 		print event
