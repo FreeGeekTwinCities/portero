@@ -9,7 +9,19 @@
 
 <form class="form form-inline" action="{{ url_for('hello') }}" method=post>
 	{{ wtf.inline_field(form.employee) }}
-	{{ form.work }}
+	
+	<label class="control-label" for="work">Work</label>
+	<div class="controls"><table><tr>
+	{% for subfield in form.work %}
+		<td style="padding:0px 25px">{{ subfield }}</td>
+	{% endfor %}
+	</tr>
+	<tr>
+	{% for subfield in form.work %}
+		<td style="text-align:center">{{ subfield.label }}</td>
+	{% endfor %}
+	</tr></table></div>
+	
 	{{ wtf.inline_field(form.action) }}
 	<button name="action_save" type="submit" class="btn btn-primary">Sign In</button>
 </form>
