@@ -5,9 +5,25 @@
   <li class="active">Home</li>
 </ul>
 
-<h2>Welcome to {{ company.name }}</h2>
+<h2>Welcome!</h2>
 
-<h3><a href="timesheet"><img width="100" src="{{ url_for('static', filename='img/clock.png') }}"/>Record your volunteer time</a></h3>
-<h3><a href="donation"><img width="100" src="{{ url_for('static', filename='img/donation-hands.png') }}"/>Enter a donation</a></h3>
-<h3><a href="sale"><img width="100" src="{{ url_for('static', filename='img/dollar.png') }}"/>Sell hardware</a></h3>
+<form class="form form-inline" action="{{ url_for('hello') }}" method=post>
+	{{ wtf.inline_field(form.employee) }}
+	{{ form.work }}
+	{{ wtf.inline_field(form.action) }}
+	<button name="action_save" type="submit" class="btn btn-primary">Sign In</button>
+</form>
+
+{% for employee in employees %}
+	<img src="data:image/png;base64,{{ employee.photo}}" width="48px">{{ employee.name }}
+{% endfor %}
+
+<script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bootstrap-typeahead.js') }}"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+		var employees_signed_out = {{ employees_signed_out|safe }};
+		$('#employee').typeahead({source: employees_signed_out, items:5});
+    });
+</script>
 {% endblock %}

@@ -1,4 +1,6 @@
 DEBUG = True
-TRYTON_DB = 'test'
-TRYTON_USER = 'admin'
-TRYTON_PASSWORD = 'test'
+ERP_TYPE = 'openerp'
+ERP_DB = 'test'
+ERP_HOST = 'localhost'
+ERP_USER = 'admin'
+ERP_PASSWORD = 'test'
