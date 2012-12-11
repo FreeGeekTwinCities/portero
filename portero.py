@@ -19,11 +19,6 @@ import openerplib
 connection = openerplib.get_connection(hostname=app.config['ERP_HOST'], database=app.config['ERP_DB'], login=app.config['ERP_USER'], password=app.config['ERP_PASSWORD'])
 
 employee_model = connection.get_model("hr.employee")
-employees = employee_model.search_read([("active", "=", True)])
-#print employees
-
-employees_signed_out = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees]
-print employees_signed_out
 
 attendance_model = connection.get_model("hr.attendance")
 #print attendance_model
@@ -57,9 +52,13 @@ class AttendanceForm(Form):
 	work = RadioField(choices=[(department['id'], department['name']) for department in departments], coerce=int)
 	action = HiddenField()
 	
-##Display welcome page at root of site
+#Display welcome page at root of site
 @app.route("/", methods=['GET', 'POST'])
 def hello():
+	employees = employee_model.search_read([("active", "=", True)])
+	employees_signed_out = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees if employee['state'] == 'absent']
+	print employees_signed_out
+
 	#Generate attendance entry form (defined in TimesheetForm above)
 	form = AttendanceForm(request.form)
 	event = 0
@@ -80,7 +79,7 @@ def hello():
 		print sheet
 		now = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 		new_event = {
-			'emp_id' : employee_id,
+			'employee_id' : employee_id,
 			'name' : now,
 			'day' : today,
 			'action' : 'sign_in',
@@ -91,122 +90,20 @@ def hello():
 	
 	return render_template('hello.html', form=form, event=attendance_model.read(event), employees=employees, employees_signed_out=json.dumps(employees_signed_out))
 
-#@app.route("/timesheet", methods=['GET', 'POST'])
-#def enter_timesheet():
-	##Generate timesheet entry form (defined in TimesheetForm above)
-	#form = TimesheetForm(request.form)
-	
-	##If there's POST data, construct & save a new timesheet line
-	#if request.method == 'POST':
-		#line = TimesheetLine()
-		#line.hours = float(request.form['hours'])
-		#line.description = request.form['description']
-		#line.work = Work(request.form['work'])
-		#employee_id = int(request.form['employee'][:request.form['employee'].find(':')])
-		#print employee_id
-		#line.employee = Employee(employee_id)
-		#print line.employee
-		#line.date = datetime.strptime(request.form['date'], "%Y-%m-%d").date()
-		#line.save()
-		#return redirect(url_for('timesheet_report', volunteer_id=line.employee.id, name=line.employee.name, work=line.work.name))
-
-	##Finally, render timesheet page
-	#return render_template('timesheet.html', form=form, company=company, employees=json.dumps(Employees))
-
-#@app.route("/timesheet/volunteer/<int:volunteer_id>")
-#def timesheet_report(volunteer_id):
-	#timesheet_lines = [timesheet_line for timesheet_line in TimesheetLine.find([('employee', '=', volunteer_id)])]
-	#return render_template('timesheet_report.html', timesheet_lines=timesheet_lines)
-
-#@app.route("/donation", methods=['GET', 'POST'])
-#def enter_donation():
-	##Generate donation entry form (defined above)
-	#form = TransactionForm(request.form)
-
-	#if request.method == 'POST':
-		#donation = Purchase()
-		#if ':' in request.form['party']:
-			#donation.party = Party(int(request.form['party'][:request.form['party'].find(':')]))
-		#else:
-			#new_party = Party()
-			#new_party.name = request.form['party']
-			#new_party.save()
-			#donation.party = new_party
-		#donation.purchase_date = datetime.strptime(request.form['date'], "%Y-%m-%d").date()
-		#donation.currency = Currency(152)
-		#donation.save()
-		#donation.state = 'confirmed'
-		#donation.save()
-		
-		##Once donation has been created add item 'line' to it
-		#for line_num in range(1, 6):
-			#if request.form['item%s_quantity' % line_num]:
-				#donation_line = donation.lines.new()
-				#donation_line.purchase = Purchase(donation.id)
-				#donation_line.type = 'line' 
-				#donation_line.quantity = Decimal(request.form['item%s_quantity' % line_num])
-				#donation_line.product = Product(int(request.form['item%s_type' % line_num]))
-				#if request.form['item%s_description' % line_num]:
-					#donation_line.description = '%s - %s' % (donation_line.product.name, request.form['item%s_description' % line_num])
-				#else:
-					#donation_line.description = donation_line.product.name
-				#donation_line.unit = Unit(1)
-				#donation_line.unit_price = donation_line.product.cost_price
-				#donation_line.save()
-				
-		#return redirect(url_for('donation_receipt', donation_id=donation.id))
-		
-	##Finally, render donation page
-	#return render_template('transaction.html', form=form, transaction_type='donation', company=company, parties=json.dumps(Parties))
-	
-#@app.route("/donation/receipt/<int:donation_id>")
-#def donation_receipt(donation_id):
-	#donation = Purchase(donation_id)
-	#return render_template('receipt.html', company=company, company_address=company_address, transaction=donation, date=donation.purchase_date, transaction_type='donation', product_prices=json.dumps(product_prices))
-
-#@app.route("/sale", methods=['GET', 'POST'])
-#def enter_sale():
-	##Generate sale entry form (defined above)
-	#form = TransactionForm(request.form)
-
-	#if request.method == 'POST':
-		#sale = Sale()
-		#if ':' in request.form['party']:
-			#sale.party = Party(int(request.form['party'][:request.form['party'].find(':')]))
-		#else:
-			#new_party = Party()
-			#new_party.name = request.form['party']
-			#new_party.save()
-			#sale.party = new_party
-		#sale.sale_date = datetime.strptime(request.form['date'], "%Y-%m-%d").date()
-		#sale.save()
-		#sale.state = 'confirmed'
-		#sale.save()
-		
-		##Once parent 'sale' has been created, add item 'lines' to it
-		#for line_num in range(1, 6):
-			#if request.form['item%s_quantity' % line_num]:
-				#sale_line = sale.lines.new()
-				#sale_line.sale = Sale(sale.id)
-				#sale_line.type = 'line' 
-				#sale_line.quantity = Decimal(request.form['item%s_quantity' % line_num])
-				#sale_line.product = Product(int(request.form['item%s_type' % line_num]))
-				#if request.form['item%s_description' % line_num]:
-					#sale_line.description = '%s - %s' % (sale_line.product.name, request.form['item%s_description' % line_num])
-				#else:
-					#sale_line.description = sale_line.product.name
-				#sale_line.unit = Unit(1)
-				#sale_line.unit_price = Decimal(request.form['item%s_price' % line_num])
-				#sale_line.save()
-		#return redirect(url_for('sale_receipt', sale_id=sale.id))
-		
-	##Finally, render sale page
-	#return render_template('transaction.html', form=form, transaction_type='sale', company=company, parties=json.dumps(Parties), product_prices=json.dumps(product_prices))
-	
-#@app.route("/sale/receipt/<int:sale_id>")
-#def sale_receipt(sale_id):
-	#sale = Sale(sale_id)
-	#return render_template('receipt.html', company=company, company_address=company_address, transaction=sale, date=sale.sale_date, transaction_type='Sale')
+@app.route("/volunteer/sign_out", methods=['GET', 'POST'])
+def sign_out():
+	employee_id = request.args.get('volunteer_id')
+	today = str(date.today().strftime('%Y-%m-%d'))
+	now = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+	new_event = {
+		'employee_id' : employee_id,
+		'name' : now,
+		'day' : today,
+		'action' : 'sign_out'
+	}
+	event = attendance_model.create(new_event)
+	print event
+	return redirect(url_for('hello'))
 
 if __name__ == "__main__":
     app.run()

@@ -31,7 +31,7 @@
 </form>
 
 {% for employee in employees %}
-	<img src="data:image/png;base64,{{ employee.photo}}" width="48px">{{ employee.name }}
+	<img src="data:image/png;base64,{{ employee.photo}}" width="48px">{{ employee.name }} - <a href="{{ url_for('sign_out', volunteer_id=employee.id) }}"><i class="icon-off"></i>Sign Out</a>
 {% endfor %}
 
 <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
