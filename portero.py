@@ -55,10 +55,17 @@ class AttendanceForm(Form):
 #Display welcome page at root of site
 @app.route("/", methods=['GET', 'POST'])
 def hello():
+	today = str(date.today().strftime('%Y-%m-%d'))
 	employees = employee_model.search_read([("active", "=", True)])
 	employees_signed_out = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees if employee['state'] == 'absent']
 	print employees_signed_out
-
+	employees_signed_in = [{'id': employee['id'], 'photo': employee['photo'], 'name': employee['name']} for employee in employees if employee['state'] == 'present']
+	print employees_signed_in
+	for employee in employees_signed_in:
+		current_work = timesheet_model.search_read([("date_current", "=", today), ("employee_id", "=", employee['id'])])
+		employee['work'] = current_work[0]['department_id'][1]
+	print employees_signed_in
+		
 	#Generate attendance entry form (defined in TimesheetForm above)
 	form = AttendanceForm(request.form)
 	event = 0
@@ -66,17 +73,20 @@ def hello():
 		
 	if request.method == 'POST':
 		employee_id = int(request.form['employee'][:request.form['employee'].find(':')])
-		today = str(date.today().strftime('%Y-%m-%d'))
-		new_sheet = {
-			'employee_id' : employee_id,
-			'company_id' : 1,
-			'date_from' : today,
-			'date_current' : today,
-			'date_to' : today,
-			'department_id' : request.form['work'],
-		}
-		sheet = timesheet_model.create(new_sheet)
-		print sheet
+		current_timesheets = timesheet_model.search([("employee_id", "=", employee_id), ("date_current", "=", today)])
+		if len(current_timesheets):
+			sheet = current_timesheets[0]
+		else:
+			new_sheet = {
+				'employee_id' : employee_id,
+				'company_id' : 1,
+				'date_from' : today,
+				'date_current' : today,
+				'date_to' : today,
+				'department_id' : request.form['work'],
+			}
+			sheet = timesheet_model.create(new_sheet)
+			print sheet
 		now = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 		new_event = {
 			'employee_id' : employee_id,
@@ -88,7 +98,7 @@ def hello():
 		event = attendance_model.create(new_event)
 		print event
 	
-	return render_template('hello.html', form=form, event=attendance_model.read(event), employees=employees, employees_signed_out=json.dumps(employees_signed_out))
+	return render_template('hello.html', form=form, event=attendance_model.read(event), employees=employees, employees_signed_out=json.dumps(employees_signed_out), employees_signed_in=employees_signed_in)
 
 @app.route("/volunteer/sign_out", methods=['GET', 'POST'])
 def sign_out():
