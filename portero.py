@@ -57,12 +57,13 @@ class AttendanceForm(Form):
 def hello():
 	today = str(date.today().strftime('%Y-%m-%d'))
 	employees = employee_model.search_read([("active", "=", True)])
+	#print employees
 	employees_signed_out = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees if employee['state'] == 'absent']
 	print employees_signed_out
-	employees_signed_in = [{'id': employee['id'], 'photo': employee['photo'], 'name': employee['name']} for employee in employees if employee['state'] == 'present']
+	employees_signed_in = [{'id': employee['id'], 'photo': employee['image_small'], 'name': employee['name']} for employee in employees if employee['state'] == 'present']
 	print employees_signed_in
 	for employee in employees_signed_in:
-		current_work = timesheet_model.search_read([("date_current", "=", today), ("employee_id", "=", employee['id'])])
+		current_work = timesheet_model.search_read([("date_from", "=", today), ("employee_id", "=", employee['id'])])
 		employee['work'] = current_work[0]['department_id'][1]
 	print employees_signed_in
 		
@@ -73,7 +74,7 @@ def hello():
 		
 	if request.method == 'POST':
 		employee_id = int(request.form['employee'][:request.form['employee'].find(':')])
-		current_timesheets = timesheet_model.search([("employee_id", "=", employee_id), ("date_current", "=", today)])
+		current_timesheets = timesheet_model.search([("employee_id", "=", employee_id), ("date_from", "=", today)])
 		if len(current_timesheets):
 			sheet = current_timesheets[0]
 		else:
