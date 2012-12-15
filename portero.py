@@ -114,7 +114,7 @@ def sign_in():
 		event = attendance_model.create(new_event)
 		print event
 	
-	return render_template('index.html', form=form, event=attendance_model.read(event), employees=employees, employees_signed_out=json.dumps(employees_signed_out), employees_signed_in=employees_signed_in)
+	return render_template('index.html', form=form, event=attendance_model.read(event), employees=employees, employees_signed_out=json.dumps(employees_signed_out), employees_signed_in=employees_signed_in, erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'])
 
 #Display new volunteer form
 @app.route("/volunteer/new", methods=['GET', 'POST'])
