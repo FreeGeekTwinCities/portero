@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block body %}
+<ul class="breadcrumb">
+  <li><a href="/">Home</a></li>
+  <li></li>
+  <li class="active">New Volunteer</li>
+</ul>
+
+
+<h3>New Volunteer Info</h3>
+
+<form class="form form-horizontal" action="{{ url_for('sign_up') }}" method=post>
+	{{ wtf.horizontal_field(form.name) }}
+	{{ wtf.horizontal_field(form.email) }}
+	{{ wtf.horizontal_field(form.phone) }}
+
+	<fieldset name="address">
+		<legend>Address</legend>
+		{{ wtf.horizontal_field(form.street) }}
+		{{ wtf.horizontal_field(form.city) }}
+		{{ wtf.horizontal_field(form.zip) }}
+	</fieldset>
+	
+	<fieldset name="login">
+		<legend>Login Info</legend>
+		{{ wtf.horizontal_field(form.username) }}
+		{{ wtf.horizontal_field(form.password) }}
+	</fieldset>
+
+	{{ wtf.inline_field(form.action) }}
+	
+	<div class="form-actions"><button name="action_save" type="submit" class="btn btn-primary">Save Volunteer Info</button></div>
+	
+</form>
+
+<script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bootstrap-typeahead.js') }}"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+    });
+</script>
+{% endblock %}

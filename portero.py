@@ -6,7 +6,7 @@ from decimal import *
 
 from flask import Flask, render_template, request, url_for, redirect
 from flask.ext.bootstrap import Bootstrap
-from wtforms import Form, DateField, DateTimeField, DecimalField, HiddenField, TextField, SelectField, RadioField, validators
+from wtforms import Form, DateField, DateTimeField, DecimalField, HiddenField, TextField, SelectField, RadioField, PasswordField, validators
 
 import json
 import portero_config
@@ -51,21 +51,36 @@ class AttendanceForm(Form):
 	employee = TextField('Volunteer')
 	work = RadioField(choices=[(department['id'], department['name']) for department in departments], coerce=int)
 	action = HiddenField()
+
+#Set up new volunteer form
+class VolunteerForm(Form):
+	name = TextField('Full Name')
+	email = TextField('Email Address')
+	phone = TextField('Phone #')
+	street = TextField('Street Address')
+	city = TextField('City')
+	zip = TextField('Zip Code')
+	username = TextField('Username/Login')
+	password = PasswordField('Password')
+	action = HiddenField()
 	
-#Display welcome page at root of site
+#Display welcome/sign-in page at root of site
 @app.route("/", methods=['GET', 'POST'])
-def hello():
+def sign_in():
 	today = str(date.today().strftime('%Y-%m-%d'))
 	employees = employee_model.search_read([("active", "=", True)])
-	#print employees
+	print employees
 	employees_signed_out = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees if employee['state'] == 'absent']
 	print employees_signed_out
-	employees_signed_in = [{'id': employee['id'], 'photo': employee['image_small'], 'name': employee['name']} for employee in employees if employee['state'] == 'present']
-	print employees_signed_in
+	employees_signed_in = [{'id': employee['id'], 'photo': employee['photo'], 'name': employee['name']} for employee in employees if employee['state'] == 'present']
+	#Use the following version for OpenERP v7
+	#employees_signed_in = [{'id': employee['id'], 'photo': employee['image_small'], 'name': employee['name']} for employee in employees if employee['state'] == 'present']
+	#print employees_signed_in
 	for employee in employees_signed_in:
 		current_work = timesheet_model.search_read([("date_from", "=", today), ("employee_id", "=", employee['id'])])
-		employee['work'] = current_work[0]['department_id'][1]
-	print employees_signed_in
+		if current_work:
+			employee['work'] = current_work[0]['department_id'][1]
+	#print employees_signed_in
 		
 	#Generate attendance entry form (defined in TimesheetForm above)
 	form = AttendanceForm(request.form)
@@ -99,7 +114,21 @@ def hello():
 		event = attendance_model.create(new_event)
 		print event
 	
-	return render_template('hello.html', form=form, event=attendance_model.read(event), employees=employees, employees_signed_out=json.dumps(employees_signed_out), employees_signed_in=employees_signed_in)
+	return render_template('index.html', form=form, event=attendance_model.read(event), employees=employees, employees_signed_out=json.dumps(employees_signed_out), employees_signed_in=employees_signed_in)
+
+#Display new volunteer form
+@app.route("/volunteer/new", methods=['GET', 'POST'])
+def sign_up():
+	employees = employee_model.search_read([("active", "=", True)])
+	#print employees
+	form = VolunteerForm(request.form)
+	
+	if request.method == 'POST':
+		new_employee = {
+			
+		}
+	
+	return render_template('signup.html', form=form, employees=employees)
 
 @app.route("/volunteer/sign_out", methods=['GET', 'POST'])
 def sign_out():
@@ -114,7 +143,7 @@ def sign_out():
 	}
 	event = attendance_model.create(new_event)
 	print event
-	return redirect(url_for('hello'))
+	return redirect(url_for('sign_in'))
 
 if __name__ == "__main__":
     app.run()

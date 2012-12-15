@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block body %}
+<ul class="breadcrumb">
+  <li class="active">Home</li>
+  <li></li>
+  <li><a href="{{ url_for('sign_up') }}">New Volunteer</a></li>
+</ul>
+
+
+<h3>Sign In:</h3>
+
+<form class="form form-inline" action="{{ url_for('sign_in') }}" method=post>
+	<div class="row-fluid">{{ wtf.inline_field(form.employee) }}</div>
+	
+	
+	<div class="controls row-fluid">
+		<h4>What will you be working on?</h4>
+		<table cellpadding=10>
+			<tr>
+			{% for subfield in form.work %}
+				<td style="padding:0px 25px">{{ subfield }}</td>
+			{% endfor %}
+			</tr>
+			<tr>
+			{% for subfield in form.work %}
+				<td style="text-align:center">{{ subfield.label }}</td>
+			{% endfor %}
+			</tr>
+		</table>
+	</div>
+	
+	{{ wtf.inline_field(form.action) }}
+	
+	<div class="row-fluid"><button name="action_save" type="submit" class="btn btn-primary">Sign In</button></div>
+	
+</form>
+
+<hr/>
+
+<h3>Currently Volunteering:</h3>
+
+<div style="-moz-column-count:{{ employees_signed_in|groupby('work')|count }}; -webkit-column-count:{{ employees_signed_in|groupby('work')|count }}; column-count:{{ employees_signed_in|groupby('work')|count }};">
+{% for group in employees_signed_in|groupby('work') %}
+	<div style="-webkit-column-break-inside:avoid;-moz-column-break-inside:avoid;-o-column-break-inside:avoid;-ms-column-break-inside:avoid;column-break-inside:avoid;">
+	<h4>{{ group.grouper }}</h4>
+	{% for employee in group.list %}
+		<img src="data:image/png;base64,{{ employee.photo}}" width="48px">{{ employee.name }} (<a href="{{ url_for('sign_out', volunteer_id=employee.id) }}">Sign Out</a>)
+	{% endfor %}</div>
+{% endfor %}
+</div>
+
+<script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bootstrap-typeahead.js') }}"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+		var employees_signed_out = {{ employees_signed_out|safe }};
+		$('#employee').typeahead({source: employees_signed_out, items:5});
+    });
+</script>
+{% endblock %}
