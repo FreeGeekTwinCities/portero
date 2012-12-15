@@ -45,7 +45,7 @@
 	<div style="-webkit-column-break-inside:avoid;-moz-column-break-inside:avoid;-o-column-break-inside:avoid;-ms-column-break-inside:avoid;column-break-inside:avoid;">
 	<h4>{{ group.grouper }}</h4>
 	{% for employee in group.list %}
-		<img src="data:image/png;base64,{{ employee.photo}}" width="48px">{{ employee.name }} (<a href="{{ url_for('sign_out', volunteer_id=employee.id) }}">Sign Out</a>)
+		<img src="data:image/png;base64,{{ employee.photo}}" width="48px">{{ employee.name }} (<a href="{{ url_for('sign_out', volunteer_id=employee.id) }}">Sign Out</a>)<br/>
 	{% endfor %}</div>
 {% endfor %}
 </div>
