@@ -31,9 +31,9 @@ print timesheet_model
 timesheets = timesheet_model.search_read([])
 print timesheets
 
-analytic_model = connection.get_model('account.analytic.account')
+#analytic_model = connection.get_model('account.analytic.account')
 #print analytic_model
-analytic_accounts = analytic_model.search_read([])
+#analytic_accounts = analytic_model.search_read([])
 #for account in analytic_accounts:
 #	print account['name']
 	
@@ -72,9 +72,9 @@ def sign_in():
 	print employees
 	employees_signed_out = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees if employee['state'] == 'absent']
 	print employees_signed_out
-	employees_signed_in = [{'id': employee['id'], 'photo': employee['photo'], 'name': employee['name']} for employee in employees if employee['state'] == 'present']
+	#employees_signed_in = [{'id': employee['id'], 'photo': employee['photo'], 'name': employee['name']} for employee in employees if employee['state'] == 'present']
 	#Use the following version for OpenERP v7
-	#employees_signed_in = [{'id': employee['id'], 'photo': employee['image_small'], 'name': employee['name']} for employee in employees if employee['state'] == 'present']
+	employees_signed_in = [{'id': employee['id'], 'photo': employee['image_small'], 'name': employee['name']} for employee in employees if employee['state'] == 'present']
 	#print employees_signed_in
 	for employee in employees_signed_in:
 		current_work = timesheet_model.search_read([("date_from", "=", today), ("employee_id", "=", employee['id'])])
