@@ -5,7 +5,7 @@ Portero
 
 Installation
 ------------
-Portero is based on the Flask web framework, and uses the openerp-client-lib, so to make it run:
+Portero is based on the [Flask](http://flask.pocoo.org/) web framework, and uses [openerp-client-lib](http://pypi.python.org/pypi/openerp-client-lib) to communicate with the OpenERP server, so to make it run:
 
 1. Install Flask and related packages:
 
