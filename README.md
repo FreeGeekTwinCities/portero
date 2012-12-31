@@ -1,14 +1,21 @@
 Portero
 =======
-[Portero](http://github.com/freegeektwincities/portero) is a simplified [Tryton](http://tryton.org) web interface for common tasks at [Free Geek Twin Cities](http://freegeektwincities.org).
+[Portero](http://github.com/freegeektwincities/portero) is a simplified ERP web interface for common tasks at [Free Geek Twin Cities](http://freegeektwincities.org).
 
 
 Installation
 ------------
-Portero is designed to be installed on the same server as Tryton, so you'll need to [install Tryton](http://doc.tryton.org/2.6/trytond/doc/topics/install.html) (and its client library, [Proteus](http://pypi.python.org/pypi/proteus))first - for Ubuntu machines, we have [a script](https://raw.github.com/FreeGeekTwinCities/fgtc-erp-scripts/master/tryton-2.6-installer.sh) that will help you install Tryton along with some supporting libraries.
+Portero is based on the Flask web framework, and uses the openerp-client-lib, so to make it run:
 
-Once Tryton's up and running, you'll need to have [Flask](http://flask.pocoo.org/) and a couple of additional packages ([Flask-WTF](http://pypi.python.org/pypi/Flask-WTF) for dealing with forms, and [Flask-Bootstrap](http://pypi.python.org/pypi/Flask-Bootstrap) 'cause Brian's not too CSS-savvy) - these can be installed by running:
-	pip install 'Flask Flask-WTF Flask-Bootstrap'
+1. Install Flask and related packages:
 
-Before running, you'll need to copy portero_config.py.dist to portero_config.py and edit as appropriate
+   > sudo apt-get install python-flask python-flaskext.wtf python-pip
+
+   > sudo pip install openerp-client-lib Flask-Bootstrap
+
+2. Download Portero (usually to e.g. /var/www/portero)
+
+3. (Optional) Replace /etc/apache2/sites-available with apache-site file from portero
+
+4. Copy portero_config.py.dist to portero_config.py and edit appropriately
 
