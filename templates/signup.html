@@ -30,6 +30,8 @@
 		{{ wtf.horizontal_field(form.username) }}
 		{{ wtf.horizontal_field(form.password) }}
 		{{ wtf.horizontal_field(form.password_confirm) }}
+		<label class="control-label" for="suggest_pass">Need a password?</label>
+		<div class="controls"><input type="text" id="suggest_pass" readonly="readonly"/></div>
 	</fieldset>
 
 	{{ wtf.inline_field(form.action) }}
@@ -39,9 +41,21 @@
 </form>
 
 <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/bootstrap-typeahead.js') }}"></script>
+<script src="{{ url_for('static', filename='js/geekpass.js') }}"></script>
 <script type="text/javascript">
+	function generateUsername () {
+		first_initial = $('#name').val().charAt(0).toLowerCase();
+		family_name = $('#name').val().split(" ")[1].toLowerCase();
+		var newUser = first_initial + family_name;
+		return newUser
+	};
     $(document).ready(function() {
+		console.log(generateUsername());
+		var suggest_pass = suggestPass();
+		$('#suggest_pass').val(suggest_pass);
+		$('#password').val(suggest_pass);
+		$('#password_confirm').val(suggest_pass);
+		$('#name').change(function () {$('#username').val(generateUsername());});
     });
 </script>
 {% endblock %}
