@@ -4,7 +4,7 @@ pkg_resources.require("Flask")
 from datetime import date, datetime, timedelta
 from decimal import *
 
-from flask import Flask, render_template, request, url_for, redirect
+from flask import Flask, render_template, request, url_for, redirect, flash
 from flask.ext.bootstrap import Bootstrap
 from wtforms import Form, DateField, DateTimeField, DecimalField, HiddenField, TextField, SelectField, RadioField, PasswordField, validators
 
@@ -13,23 +13,19 @@ import portero_config
 
 app = Flask(__name__)
 app.config.from_object('portero_config')
-print app.config
+app.secret_key = app.config['SECRET_KEY']
+#print app.config
 	
 import openerplib
 connection = openerplib.get_connection(hostname=app.config['ERP_HOST'], database=app.config['ERP_DB'], login=app.config['ERP_USER'], password=app.config['ERP_PASSWORD'])
 
 employee_model = connection.get_model("hr.employee")
-
+employees = employee_model.search_read([("active", "=", True)])
+employee_choices = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees]
+	
 attendance_model = connection.get_model("hr.attendance")
-#print attendance_model
-attendances_today = attendance_model.search_read([('day', '=', str(date.today().strftime('%Y-%m-%d')))])
-#attendances = attendance_model.search_read([])
-print attendances_today
 
 timesheet_model = connection.get_model("hr_timesheet_sheet.sheet")
-print timesheet_model
-timesheets = timesheet_model.search_read([])
-print timesheets
 
 department_model = connection.get_model('hr.department')
 departments = department_model.search_read([])
@@ -42,34 +38,46 @@ Bootstrap(app)
 
 #Set up attendance form
 class AttendanceForm(Form):
-	employee = TextField('Volunteer')
-	work = RadioField(choices=[(department['id'], department['name']) for department in departments], coerce=int)
+	employee = TextField('Volunteer', [validators.Required(), validators.AnyOf(employee_choices, message='Please select a valid volunteer ID/name; if your name does not appear when you begin typing it, please check with a staffer or click the New Volunteer link above!')])
+	work = RadioField('What are you working on?', [validators.Required()], choices=[(department['id'], department['name']) for department in departments], coerce=int)
 	action = HiddenField()
 
 #Set up new volunteer form
 class VolunteerForm(Form):
-	name = TextField('Full Name')
-	email = TextField('Email Address')
+	name = TextField('Full Name', [validators.Required()])
+	email = TextField('Email Address', [validators.Email(message='Please enter a valid email address')])
 	phone = TextField('Phone #')
 	street = TextField('Street Address')
 	city = TextField('City')
 	zip = TextField('Zip Code')
-	username = TextField('Username/Login')
-	password = PasswordField('Password')
+	username = TextField('Username/Login', [validators.Required(), validators.Length(min=3)])
+	password = PasswordField('Password', [validators.Required(), validators.EqualTo('password_confirm', message='Passwords must match')])
+	password_confirm = PasswordField('Repeat Password')
+	emergency_contact_name = TextField('Name')
+	emergency_contact_phone = TextField('Phone #')
 	action = HiddenField()
 	
 #Display welcome/sign-in page at root of site
 @app.route("/", methods=['GET', 'POST'])
 def sign_in():
 	today = str(date.today().strftime('%Y-%m-%d'))
+	attendances_today = attendance_model.search_read([('day', '=', today)])
+	print attendances_today
+
+	timesheets = timesheet_model.search_read([])
+	print timesheets
+
 	employees = employee_model.search_read([("active", "=", True)])
 	print employees
+	
 	employees_signed_out = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees if employee['state'] == 'absent']
 	print employees_signed_out
+	
 	#Use the following for OpenERP v6.x
 	#employees_signed_in = [{'id': employee['id'], 'photo': employee['photo'], 'name': employee['name']} for employee in employees if employee['state'] == 'present']
 	#Use the following version for OpenERP v7
 	employees_signed_in = [{'id': employee['id'], 'photo': employee['image_small'], 'name': employee['name']} for employee in employees if employee['state'] == 'present']
+	
 	for employee in employees_signed_in:
 		current_work = timesheet_model.search_read([("date_from", "=", today), ("employee_id", "=", employee['id'])])
 		if current_work:
@@ -80,7 +88,7 @@ def sign_in():
 	event = 0
 	sheet = 0
 		
-	if request.method == 'POST':
+	if request.method == 'POST' and form.validate():
 		employee_id = int(request.form['employee'][:request.form['employee'].find(':')])
 		current_timesheets = timesheet_model.search([("employee_id", "=", employee_id), ("date_from", "=", today)])
 		if len(current_timesheets):
@@ -115,15 +123,15 @@ def sign_up():
 	employees = employee_model.search_read([("active", "=", True)])
 	users = user_model.search_read([])
 	form = VolunteerForm(request.form)
+	print form.validate()
 	
-	if request.method == 'POST':
+	if request.method == 'POST' and form.validate():
 		#First, create the 'user', since the 'employee' record will link to this
 		new_user = {
 			'login' : request.form['username'],
 			'password' : request.form['password'],
 			'name' : request.form['name'],
 			'email' : request.form['email'],
-			'timezone' : 'America/Chicago'
 		}
 		user = user_model.create(new_user)
 		
@@ -134,8 +142,10 @@ def sign_up():
 			'user_id' : user
 		}
 		employee = employee_model.create(new_employee)
+		employee_choices = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees]
+		return render_template('signup.html', form=VolunteerForm(), message='Welcome to Free Geek, %s!' % request.form['name'])
 			
-	return render_template('signup.html', form=form, employees=employees)
+	return render_template('signup.html', form=form)
 
 @app.route("/volunteer/sign_out", methods=['GET', 'POST'])
 def sign_out():

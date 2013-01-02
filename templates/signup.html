@@ -2,12 +2,15 @@
 
 {% block body %}
 <ul class="breadcrumb">
-  <li><a href="/">Home</a></li>
-  <li></li>
+  <li><a href="/">Sign In/Out</a></li>
+  <li>|</li>
   <li class="active">New Volunteer</li>
 </ul>
 
-
+{% if message %}
+	<h4>{{ message }}</h4>
+{% endif %}
+	
 <h3>New Volunteer Info</h3>
 
 <form class="form form-horizontal" action="{{ url_for('sign_up') }}" method=post>
@@ -26,6 +29,7 @@
 		<legend>Login Info</legend>
 		{{ wtf.horizontal_field(form.username) }}
 		{{ wtf.horizontal_field(form.password) }}
+		{{ wtf.horizontal_field(form.password_confirm) }}
 	</fieldset>
 
 	{{ wtf.inline_field(form.action) }}
