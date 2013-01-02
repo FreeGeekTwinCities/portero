@@ -31,16 +31,10 @@ print timesheet_model
 timesheets = timesheet_model.search_read([])
 print timesheets
 
-#analytic_model = connection.get_model('account.analytic.account')
-#print analytic_model
-#analytic_accounts = analytic_model.search_read([])
-#for account in analytic_accounts:
-#	print account['name']
-	
 department_model = connection.get_model('hr.department')
-#print department_model
 departments = department_model.search_read([])
-#print departments
+
+user_model = connection.get_model('res.users')
 
 app.debug = app.config['DEBUG']
     
@@ -72,15 +66,14 @@ def sign_in():
 	print employees
 	employees_signed_out = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees if employee['state'] == 'absent']
 	print employees_signed_out
+	#Use the following for OpenERP v6.x
 	#employees_signed_in = [{'id': employee['id'], 'photo': employee['photo'], 'name': employee['name']} for employee in employees if employee['state'] == 'present']
 	#Use the following version for OpenERP v7
 	employees_signed_in = [{'id': employee['id'], 'photo': employee['image_small'], 'name': employee['name']} for employee in employees if employee['state'] == 'present']
-	#print employees_signed_in
 	for employee in employees_signed_in:
 		current_work = timesheet_model.search_read([("date_from", "=", today), ("employee_id", "=", employee['id'])])
 		if current_work:
 			employee['work'] = current_work[0]['department_id'][1]
-	#print employees_signed_in
 		
 	#Generate attendance entry form (defined in TimesheetForm above)
 	form = AttendanceForm(request.form)
@@ -120,14 +113,28 @@ def sign_in():
 @app.route("/volunteer/new", methods=['GET', 'POST'])
 def sign_up():
 	employees = employee_model.search_read([("active", "=", True)])
-	#print employees
+	users = user_model.search_read([])
 	form = VolunteerForm(request.form)
 	
 	if request.method == 'POST':
-		new_employee = {
-			
+		#First, create the 'user', since the 'employee' record will link to this
+		new_user = {
+			'login' : request.form['username'],
+			'password' : request.form['password'],
+			'name' : request.form['name'],
+			'email' : request.form['email'],
+			'timezone' : 'America/Chicago'
 		}
-	
+		user = user_model.create(new_user)
+		
+		#Then, create the 'employee' record, linking it to the just-created 'user' - this is required for timesheet entry
+		new_employee = {
+			'name' : request.form['name'],
+			'work_email' : request.form['email'],
+			'user_id' : user
+		}
+		employee = employee_model.create(new_employee)
+			
 	return render_template('signup.html', form=form, employees=employees)
 
 @app.route("/volunteer/sign_out", methods=['GET', 'POST'])
