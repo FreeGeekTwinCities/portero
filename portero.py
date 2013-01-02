@@ -22,15 +22,16 @@ connection = openerplib.get_connection(hostname=app.config['ERP_HOST'], database
 employee_model = connection.get_model("hr.employee")
 employees = employee_model.search_read([("active", "=", True)])
 employee_choices = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees]
+
+user_model = connection.get_model('res.users')
 	
 attendance_model = connection.get_model("hr.attendance")
-
 timesheet_model = connection.get_model("hr_timesheet_sheet.sheet")
 
 department_model = connection.get_model('hr.department')
 departments = department_model.search_read([])
 
-user_model = connection.get_model('res.users')
+address_model = connection.get_model('res.partner')
 
 app.debug = app.config['DEBUG']
     
@@ -135,11 +136,21 @@ def sign_up():
 		}
 		user = user_model.create(new_user)
 		
-		#Then, create the 'employee' record, linking it to the just-created 'user' - this is required for timesheet entry
+		#Create an 'address' record to store the volunteer's address info
+		new_address = {
+			'name' : request.form['name'],
+			'street' : request.form['street'],
+			'city' : request.form['city'],
+			'zip' : request.form['zip']
+		}
+		address = address_model.create(new_address)
+		
+		#Then, create the 'employee' record, linking it to the just-created 'user' - this is required for timesheet entry; also link to the home address
 		new_employee = {
 			'name' : request.form['name'],
 			'work_email' : request.form['email'],
-			'user_id' : user
+			'user_id' : user,
+			'address_home_id' : address
 		}
 		employee = employee_model.create(new_employee)
 		employee_choices = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees]

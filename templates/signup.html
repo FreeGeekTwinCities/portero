@@ -43,19 +43,17 @@
 <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/geekpass.js') }}"></script>
 <script type="text/javascript">
-	function generateUsername () {
-		first_initial = $('#name').val().charAt(0).toLowerCase();
-		family_name = $('#name').val().split(" ")[1].toLowerCase();
-		var newUser = first_initial + family_name;
-		return newUser
-	};
     $(document).ready(function() {
-		console.log(generateUsername());
 		var suggest_pass = suggestPass();
 		$('#suggest_pass').val(suggest_pass);
 		$('#password').val(suggest_pass);
 		$('#password_confirm').val(suggest_pass);
-		$('#name').change(function () {$('#username').val(generateUsername());});
+		$('#name').change(function () {
+			first_initial = $('#name').val().charAt(0).toLowerCase();
+			family_name = $('#name').val().split(" ")[1].toLowerCase();
+			var newUser = first_initial + family_name;
+			$('#username').val(newUser)
+		});
     });
 </script>
 {% endblock %}
