@@ -65,11 +65,11 @@ def sign_in():
 	attendances_today = attendance_model.search_read([('day', '=', today)])
 	print attendances_today
 
-	timesheets = timesheet_model.search_read([])
-	print timesheets
+	#timesheets_today = timesheet_model.search_read([("date_from", "=", today)])
+	#print timesheets_today
 
 	employees = employee_model.search_read([("active", "=", True)])
-	print employees
+	#print employees
 	
 	employees_signed_out = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees if employee['state'] == 'absent']
 	print employees_signed_out
@@ -78,12 +78,18 @@ def sign_in():
 	#employees_signed_in = [{'id': employee['id'], 'photo': employee['photo'], 'name': employee['name']} for employee in employees if employee['state'] == 'present']
 	#Use the following version for OpenERP v7
 	employees_signed_in = [{'id': employee['id'], 'photo': employee['image_small'], 'name': employee['name']} for employee in employees if employee['state'] == 'present']
+	#print employees_signed_in
 	
 	for employee in employees_signed_in:
+		print employee
 		current_work = timesheet_model.search_read([("date_from", "=", today), ("employee_id", "=", employee['id'])])
+		print current_work
 		if current_work:
 			employee['work'] = current_work[0]['department_id'][1]
-		
+		else:
+			employee['work'] = 'Unknown'
+	#print employees_signed_in
+	
 	#Generate attendance entry form (defined in TimesheetForm above)
 	form = AttendanceForm(request.form)
 	event = 0
@@ -172,6 +178,16 @@ def sign_out():
 	event = attendance_model.create(new_event)
 	print event
 	return redirect(url_for('sign_in'))
+	
+@app.route("/volunteer/report", methods=['GET', 'POST'])
+def volunteer_report():
+	employee_id = request.args.get('id')
+	employee_name = request.args.get('name')
+	employee_key = [employee_id, employee_name]
+	#print employees
+	employee_photo = employee_model.search_read([("id", "=", employee_id)])[0]['image_small']
+	timesheet_lines = timesheet_model.search_read([("employee_id", "=", employee_key)])
+	return render_template('timesheet_report.html', timesheet_lines=timesheet_lines, employee_photo=employee_photo)
 
 if __name__ == "__main__":
     app.run()
