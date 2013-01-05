@@ -37,12 +37,6 @@ app.debug = app.config['DEBUG']
     
 Bootstrap(app)
 
-#Set up attendance form
-class AttendanceForm(Form):
-	employee = TextField('Volunteer', [validators.Required(), validators.AnyOf(employee_choices, message='Please select a valid volunteer ID/name; if your name does not appear when you begin typing it, please check with a staffer or click the New Volunteer link above!')])
-	work = RadioField('What are you working on?', [validators.Required()], choices=[(department['id'], department['name']) for department in departments], coerce=int)
-	action = HiddenField()
-
 #Set up new volunteer form
 class VolunteerForm(Form):
 	name = TextField('Full Name', [validators.Required()])
@@ -62,6 +56,15 @@ class VolunteerForm(Form):
 @app.route("/", methods=['GET', 'POST'])
 def sign_in():
 	today = str(date.today().strftime('%Y-%m-%d'))
+	employees = employee_model.search_read([("active", "=", True)])
+	employee_choices = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees]
+		
+	#Set up attendance form
+	class AttendanceForm(Form):
+		employee = TextField('Volunteer', [validators.Required(), validators.AnyOf(employee_choices, message='Please select a valid volunteer ID/name; if your name does not appear when you begin typing it, please check with a staffer or click the New Volunteer link above!')])
+		work = RadioField('What are you working on?', [validators.Required()], choices=[(department['id'], department['name']) for department in departments], coerce=int)
+		action = HiddenField()
+
 	#Generate attendance entry form (defined in TimesheetForm above)
 	form = AttendanceForm(request.form)
 	event = 0
