@@ -8,6 +8,7 @@
         <Directory /var/www/portero>
                 WSGIProcessGroup portero
                 WSGIApplicationGroup %{GLOBAL}
+		WSGIScriptReloading On
                 Order deny,allow
                 Allow from all
         </Directory>
