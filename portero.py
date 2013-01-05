@@ -103,9 +103,6 @@ def sign_in():
 	#timesheets_today = timesheet_model.search_read([("date_from", "=", today)])
 	#print timesheets_today
 
-	employees = employee_model.search_read([("active", "=", True)])
-	#print employees
-	
 	employees_signed_out = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees if employee['state'] == 'absent']
 	print employees_signed_out
 	
