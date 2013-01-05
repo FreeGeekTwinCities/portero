@@ -86,16 +86,16 @@ def sign_in():
 			}
 			sheet = timesheet_model.create(new_sheet)
 			#print sheet
-		now = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-		new_event = {
-			'employee_id' : employee_id,
-			'name' : now,
-			'day' : today,
-			'action' : 'sign_in',
-			'sheet_id' : int(sheet)
-		}
-		event = attendance_model.create(new_event)
-		#print event
+			now = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+			new_event = {
+				'employee_id' : employee_id,
+				'name' : now,
+				'day' : today,
+				'action' : 'sign_in',
+				'sheet_id' : int(sheet)
+			}
+			event = attendance_model.create(new_event)
+			#print event
 	
 	attendances_today = attendance_model.search_read([('day', '=', today)])
 	print attendances_today
