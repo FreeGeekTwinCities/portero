@@ -62,6 +62,38 @@ class VolunteerForm(Form):
 @app.route("/", methods=['GET', 'POST'])
 def sign_in():
 	today = str(date.today().strftime('%Y-%m-%d'))
+	#Generate attendance entry form (defined in TimesheetForm above)
+	form = AttendanceForm(request.form)
+	event = 0
+	sheet = 0
+	
+	if request.method == 'POST' and form.validate():
+		employee_id = int(request.form['employee'][:request.form['employee'].find(':')])
+		current_timesheets = timesheet_model.search([("employee_id", "=", employee_id), ("date_from", "=", today)])
+		if len(current_timesheets):
+			sheet = current_timesheets[0]
+		else:
+			new_sheet = {
+				'employee_id' : employee_id,
+				'company_id' : 1,
+				'date_from' : today,
+				'date_current' : today,
+				'date_to' : today,
+				'department_id' : request.form['work'],
+			}
+			sheet = timesheet_model.create(new_sheet)
+			#print sheet
+		now = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+		new_event = {
+			'employee_id' : employee_id,
+			'name' : now,
+			'day' : today,
+			'action' : 'sign_in',
+			'sheet_id' : int(sheet)
+		}
+		event = attendance_model.create(new_event)
+		#print event
+	
 	attendances_today = attendance_model.search_read([('day', '=', today)])
 	print attendances_today
 
@@ -81,47 +113,15 @@ def sign_in():
 	#print employees_signed_in
 	
 	for employee in employees_signed_in:
-		print employee
+		#print employee
 		current_work = timesheet_model.search_read([("date_from", "=", today), ("employee_id", "=", employee['id'])])
-		print current_work
+		#print current_work
 		if current_work:
 			employee['work'] = current_work[0]['department_id'][1]
 		else:
 			employee['work'] = 'Unknown'
 	#print employees_signed_in
-	
-	#Generate attendance entry form (defined in TimesheetForm above)
-	form = AttendanceForm(request.form)
-	event = 0
-	sheet = 0
 		
-	if request.method == 'POST' and form.validate():
-		employee_id = int(request.form['employee'][:request.form['employee'].find(':')])
-		current_timesheets = timesheet_model.search([("employee_id", "=", employee_id), ("date_from", "=", today)])
-		if len(current_timesheets):
-			sheet = current_timesheets[0]
-		else:
-			new_sheet = {
-				'employee_id' : employee_id,
-				'company_id' : 1,
-				'date_from' : today,
-				'date_current' : today,
-				'date_to' : today,
-				'department_id' : request.form['work'],
-			}
-			sheet = timesheet_model.create(new_sheet)
-			print sheet
-		now = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-		new_event = {
-			'employee_id' : employee_id,
-			'name' : now,
-			'day' : today,
-			'action' : 'sign_in',
-			'sheet_id' : int(sheet)
-		}
-		event = attendance_model.create(new_event)
-		print event
-	
 	return render_template('index.html', form=form, event=attendance_model.read(event), employees=employees, employees_signed_out=json.dumps(employees_signed_out), employees_signed_in=employees_signed_in, erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'])
 
 #Display new volunteer form
