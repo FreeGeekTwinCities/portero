@@ -23,6 +23,17 @@ Portero is based on the [Flask](http://flask.pocoo.org/) web framework, and uses
 Local Development
 -----------------
 
-1) (optional) Setup a virtualenv.
-2) ```pip install -r requirements.txt
+### Install OpenERP Server on Mac
+
+1. Download source tarball from http://v6.openerp.com/downloads
+1. Untar and change directory into it.
+1. (optional) Setup a virtualenv.
+1. ```pip install simplejson reportlab mako werkzeug babel python-dateutil python-openid PIL```
+1. Manually install PyChart: ```wget https://launchpad.net/ubuntu/natty/+source/python-pychart/1.39-7/+files/python-pychart_1.39.orig.tar.gz; tar -zxvf python-pychart_1.39.orig.tar.gz; cd PyChart-1.39; python setup.py install; cd ..;```
+1. run server: ```./openerp-server```
+
+### Install Potero
+
+1. (optional) Setup a virtualenv.
+2. ```pip install -r requirements.txt
 
