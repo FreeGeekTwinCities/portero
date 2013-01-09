@@ -19,3 +19,10 @@ Portero is based on the [Flask](http://flask.pocoo.org/) web framework, and uses
 
 4. Copy portero_config.py.dist to portero_config.py and edit appropriately
 
+
+Local Development
+-----------------
+
+1) (optional) Setup a virtualenv.
+2) ```pip install -r requirements.txt
+
