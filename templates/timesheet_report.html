@@ -1,35 +1,30 @@
 {% extends "base.html" %}
 
-{% block body %}
+{% block content %}
 
-<ul class="breadcrumb">
-  <li><a href="{{ url_for('sign_in') }}">Sign In/Out</a></li>
-  <li> | </li>
-  <li><a href="{{ url_for('sign_up') }}">New Volunteer</a></li>
-</ul>
-
-<div class="container-fluid">
-
-<p>
-	<img src="data:image/png;base64,{{ employee_photo }}">
-	<h3>{{ request.args.name }}</h3>
-	<!-- If there's a "work" passed, thank the volunteer... -->
-	{%- if request.args.work -%}
-		Thanks for your work on {{ request.args.work }}!}<br/>
-	{%- endif -%}
-	<!-- Get a sum of the "hours" attribute from the timesheet_lines -->
-	You've worked a total of <strong>{{ timesheet_lines|sum(attribute='total_attendance')|round(2) }}</strong> hours so far!
-</p>
-
+<div class="row-fluid">
+  <p>
+    <img src="data:image/png;base64,{{ employee_photo }}">
+    <h3>{{ request.args.name }}</h3>
+    
+    <!-- If there's a "work" passed, thank the volunteer... -->
+    {%- if request.args.work -%}
+      Thanks for your work on {{ request.args.work }}!}<br/>
+    {%- endif -%}
+    
+    <!-- Get a sum of the "hours" attribute from the timesheet_lines -->
+    You've worked a total of <strong>{{ timesheet_lines|sum(attribute='total_attendance')|round(2) }}</strong> hours so far!
+  </p>
+</div>
 
 <table class="table table-striped table-bordered">
-	<tbody>
-	<thead><th>Date</th><th>Hours</th><th>Work</th></thead>
-	<!-- take all of the timesheet lines for a volunteer, sort them in reverse order by date (so the latest entry will be at the top), and display them in a table-->
-	{% for line in timesheet_lines|sort(attribute='date_from', reverse=True) %}
-		<tr><td>{{ line.date_from }}</td><td>{{ line.total_attendance|round(2) }}</td><td>{{ line.department_id[1] }}</td></tr>
-	{% endfor %}
-	</tbody>
+  <tbody>
+  <thead><th>Date</th><th>Hours</th><th>Work</th></thead>
+  <!-- take all of the timesheet lines for a volunteer, sort them in reverse order by date (so the latest entry will be at the top), and display them in a table-->
+  {% for line in timesheet_lines|sort(attribute='date_from', reverse=True) %}
+    <tr><td>{{ line.date_from }}</td><td>{{ line.total_attendance|round(2) }}</td><td>{{ line.department_id[1] }}</td></tr>
+  {% endfor %}
+  </tbody>
 </table>
 
 {% endblock %}
