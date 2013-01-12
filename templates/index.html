@@ -51,6 +51,7 @@
 <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/bootstrap-typeahead.js') }}"></script>
 <script type="text/javascript">
+	$('#employee').attr('autocomplete', 'off');
 	console.log({{ employees_signed_out|safe }});
     $(document).ready(function() {
 		var employees_signed_out = {{ employees_signed_out|safe }};
