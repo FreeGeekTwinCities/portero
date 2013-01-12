@@ -1,0 +1,21 @@
+/**
+ * Custom CSS for Portero.
+ */
+
+
+/**
+ * WTforms and Bootstrapping
+ */
+.control-group .help-block {
+  color: #999;
+  font-size: .75em;
+}
+
+.control-group .controls ul {
+  list-style: none;
+}
+
+.control-group .controls ul li label {
+  display: inline-block;
+  padding-left: .25em;
+}

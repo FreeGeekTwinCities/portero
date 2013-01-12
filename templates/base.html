@@ -1,11 +1,19 @@
 {% extends "bootstrap_responsive.html" %}
 {% import "bootstrap_wtf.html" as wtf %}
 
+{% block title %}Portero{% endblock title %}
+
+{% block style %}
+  {{ super() }}
+  
+  <link href="{{ url_for('static', filename='css/portero.css') }}" rel="stylesheet">
+{% endblock style %}
+
 {% block body_content %}
   <!-- Site wide HTML -->
   <div class="navbar navbar-inverse navbar-fixed-top">
     <div class="navbar-inner">
-      <div class="container-fluid">
+      <div class="container">
         <a class="brand" href="{ url_for('sign_in') }}">Portero</a>
         <div class="nav-collapse collapse">
           <ul class="nav">
@@ -17,7 +25,7 @@
     </div>
   </div>
   
-  <div class="container-fluid">
+  <div class="container">
   
     <!-- Main content replacement -->
     {% block content %}{% endblock content %}

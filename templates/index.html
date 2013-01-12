@@ -1,50 +1,46 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h3>Sign In:</h3>
+  <h3>Sign In</h3>
+  
+  <form action="{{ url_for('sign_in') }}" method="post">
+    <div class="row-fluid">  
+      <div class="span4">
+        {{ wtf.horizontal_field(form.employee) }}
+      </div>
+    
+      <div class="span8 controls">
+        {{ wtf.horizontal_field(form.work) }}
+      </div>
+    
+      {{ wtf.inline_field(form.action) }}
+    </div>
 
-<form class="form form-inline" action="{{ url_for('sign_in') }}" method=post>
-	<div class="row-fluid">
-	<div class="span4">
-		{{ wtf.horizontal_field(form.employee) }}
-	</div>
-	
-	<div class="controls span8">
-		{{ wtf.horizontal_field(form.work) }}
-		<!--{% for subfield in form.work %}
-			<div class="span2" style="text-align:center;">{{ subfield }}<br/>{{ subfield.label }}</div>
-		{% endfor %}-->
-	</div>
-	
-	{{ wtf.inline_field(form.action) }}
-	</div>
-	<div class="row-fluid"><button name="action_save" type="submit" class="btn btn-primary">Sign In</button></div>
-	
-</form>
-
-<hr/>
-
-<h3>Currently Volunteering:</h3>
-
-<div id="current-volunteers" class="row-fluid">
-
-{% for group in employees_signed_in|groupby('work') %}
-	<div id={{ group.grouper }} class="span4">
-	<h4>{{ group.grouper }}</h4>
-	{% for employee in group.list %}
-		<a href="{{ url_for('volunteer_report', id=employee.id, name=employee.name) }}"><img src="data:image/png;base64,{{ employee.photo}}" width="48px">{{ employee.name }}</a> (<a href="{{ url_for('sign_out', volunteer_id=employee.id) }}">Sign&nbsp;Out</a>)<br/>
-	{% endfor %}
-	</div>
-{% endfor %}
-</div>
+    <div class="form-actions">
+      <button name="action_save" type="submit" class="btn btn-primary">Sign In</button>
+    </div>
+  </form>
+  
+  <h3>Currently Volunteering</h3>
+  <div id="current-volunteers" class="row-fluid">
+  
+    {% for group in employees_signed_in|groupby('work') %}
+      <div id={{ group.grouper }} class="span4">
+        <h4>{{ group.grouper }}</h4>
+        {% for employee in group.list %}
+          <a href="{{ url_for('volunteer_report', id=employee.id, name=employee.name) }}"><img src="data:image/png;base64,{{ employee.photo}}" width="48px">{{ employee.name }}</a> (<a href="{{ url_for('sign_out', volunteer_id=employee.id) }}">Sign&nbsp;Out</a>)<br/>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  </div>
 {% endblock content %}
 
 {% block inline_js %}
   <script type="text/javascript">
-  	console.log({{ employees_signed_out|safe }});
+    console.log({{ employees_signed_out|safe }});
       $(document).ready(function() {
-  		var employees_signed_out = {{ employees_signed_out|safe }};
-  		$('#employee').typeahead({source: employees_signed_out, items:5});
+      var employees_signed_out = {{ employees_signed_out|safe }};
+      $('#employee').typeahead({source: employees_signed_out, items:5});
       });
   </script>
 {% endblock inline_js %}
