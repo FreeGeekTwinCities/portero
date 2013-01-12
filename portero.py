@@ -86,7 +86,7 @@ def sign_in():
 			}
 			sheet = timesheet_model.create(new_sheet)
 			#print sheet
-			now = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+			now = str(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))
 			new_event = {
 				'employee_id' : employee_id,
 				'name' : now,
