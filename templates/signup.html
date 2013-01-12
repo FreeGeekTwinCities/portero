@@ -39,6 +39,8 @@
 {% block inline_js %}
 <script type="text/javascript">
     $(document).ready(function() {
+		$('#email').attr('autocomplete', 'off');
+		$('#phone').attr('autocomplete', 'off');
 		var suggest_pass = suggestPass();
 		var users = {{ users|safe }};
 		console.log(users.length);

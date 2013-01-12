@@ -37,10 +37,11 @@
 
 {% block inline_js %}
   <script type="text/javascript">
-    console.log({{ employees_signed_out|safe }});
-      $(document).ready(function() {
+    $('#employee').attr('autocomplete', 'off');
+    
+    $(document).ready(function() {
       var employees_signed_out = {{ employees_signed_out|safe }};
       $('#employee').typeahead({source: employees_signed_out, items:5});
-      });
+    });
   </script>
 {% endblock inline_js %}
