@@ -66,5 +66,6 @@ Local Development
 1. (optional) Setup a virtualenv.
 1. ```pip install -r requirements.txt```
 1. Create and edit config: ```cp portero_config.py.dist portero_config.py```
+1. Run server with ```python portero.py```
 1. Go to http://127.0.0.1:5000/
 
