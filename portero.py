@@ -39,12 +39,12 @@ Bootstrap(app)
 
 #Set up new volunteer form
 class VolunteerForm(Form):
-	name = TextField('Full Name', [validators.Required()])
+	name = TextField('Full Name', [validators.Required()], description=u"Please enter your full name, first (given) name first, family (last) name last.")
 	email = TextField('Email Address', [validators.Email(message='Please enter a valid email address')])
 	phone = TextField('Phone #')
 	street = TextField('Street Address')
 	city = TextField('City')
-	zip = TextField('Zip Code')
+	zip = TextField('Zip Code', [validators.Required()])
 	username = TextField('Username/Login', [validators.Required(), validators.Length(min=3)])
 	password = PasswordField('Password', [validators.Required(), validators.EqualTo('password_confirm', message='Passwords must match')])
 	password_confirm = PasswordField('Repeat Password')
@@ -61,7 +61,7 @@ def sign_in():
 		
 	#Set up attendance form
 	class AttendanceForm(Form):
-		employee = TextField('Volunteer', [validators.Required(), validators.AnyOf(employee_choices, message='Please select a valid volunteer ID/name; if your name does not appear when you begin typing it, please check with a staffer or click the New Volunteer link above!')])
+		employee = TextField('Volunteer', [validators.Required(), validators.AnyOf(employee_choices, message='Please select a valid volunteer ID/name; if your name does not appear when you begin typing it, please check with a staffer or click the New Volunteer link above!')], description=u"Begin entering your name (first and/or last, not your username), then select your name & ID from the list; if you can't find it, please ask a staffer for help!")
 		work = RadioField('What are you working on?', [validators.Required()], choices=[(department['id'], department['name']) for department in departments], coerce=int)
 		action = HiddenField()
 
@@ -160,9 +160,9 @@ def sign_up():
 		}
 		employee = employee_model.create(new_employee)
 		employee_choices = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees]
-		return render_template('signup.html', form=VolunteerForm(), message='Welcome to Free Geek, %s!' % request.form['name'])
+		return render_template('signup.html', form=VolunteerForm(), new_volunteer=request.form['name'])
 			
-	return render_template('signup.html', form=form)
+	return render_template('signup.html', form=form, users=[user['login'] for user in users])
 
 @app.route("/volunteer/sign_out", methods=['GET', 'POST'])
 def sign_out():
