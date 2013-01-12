@@ -1,6 +1,41 @@
 {% extends "bootstrap_responsive.html" %}
 {% import "bootstrap_wtf.html" as wtf %}
 
-<body>
-{% block body %}{% endblock %}
-</body>
+{% block body_content %}
+  <!-- Site wide HTML -->
+  <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="container-fluid">
+        <a class="brand" href="{ url_for('sign_in') }}">Portero</a>
+        <div class="nav-collapse collapse">
+          <ul class="nav">
+            <li><a href="{{ url_for('sign_in') }}">Sign In</a></li>
+            <li><a href="{{ url_for('sign_up') }}">New Volunteer</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container-fluid">
+  
+    <!-- Main content replacement -->
+    {% block content %}{% endblock content %}
+    
+    <hr>
+    <footer>
+      <p><span class="muted">Database: {{ erp_host }}/{{ erp_db }}</span></p>
+    </footer>
+  </div>
+{% endblock body_content %}
+
+{% block bootstrap_js_bottom %}
+  {{ super() }}
+  
+  <!-- Site wide JS additions -->
+  <script src="{{ url_for('static', filename='js/bootstrap-typeahead.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/geekpass.js') }}"></script>
+  
+  <!-- Block to add specific JS for templates -->
+  {% block inline_js %}{% endblock inline_js %}
+{% endblock bootstrap_js_bottom %}

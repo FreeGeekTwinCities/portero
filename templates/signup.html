@@ -1,11 +1,6 @@
 {% extends "base.html" %}
 
-{% block body %}
-<ul class="breadcrumb">
-  <li><a href="/">Sign In/Out</a></li>
-  <li>|</li>
-  <li class="active">New Volunteer</li>
-</ul>
+{% block content %}
 
 {% if new_volunteer %}
 	<h4 class="text-success">Welcome to Free Geek, {{ new_volunteer }}! You can now <a href="{{ url_for('sign_in') }}">sign in</a>.</h4>
@@ -39,9 +34,9 @@
 	<div class="form-actions"><button name="action_save" type="submit" class="btn btn-primary">Save Volunteer Info</button></div>
 	
 </form>
+{% endblock content %}
 
-<script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/geekpass.js') }}"></script>
+{% block inline_js %}
 <script type="text/javascript">
     $(document).ready(function() {
 		var suggest_pass = suggestPass();
@@ -65,4 +60,4 @@
 		});
     });
 </script>
-{% endblock %}
+{% endblock inline_js %}
