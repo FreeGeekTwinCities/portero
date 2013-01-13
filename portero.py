@@ -62,7 +62,7 @@ def sign_in():
 	#Set up attendance form
 	class AttendanceForm(Form):
 		employee = TextField('Volunteer', [validators.Required(), validators.AnyOf(employee_choices, message='Please select a valid volunteer ID/name; if your name does not appear when you begin typing it, please check with a staffer or click the New Volunteer link above!')], description=u"Begin entering your name (first and/or last, not your username), then select your name & ID from the list; if you can't find it, please ask a staffer for help!")
-		work = SelectField('What are you working on?', [validators.Required()], default=3, choices=[(department['id'], department['name']) for department in departments], coerce=int)
+		work = RadioField('What are you working on?', [validators.Required()], choices=[(department['id'], department['name']) for department in departments], coerce=int)
 		action = HiddenField()
 
 	#Generate attendance entry form (defined in TimesheetForm above)
