@@ -162,7 +162,7 @@ def sign_up():
 		employee_choices = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees]
 		return render_template('signup.html', form=VolunteerForm(), new_volunteer=request.form['name'])
 			
-	return render_template('signup.html', form=form, users=[user['login'] for user in users])
+	return render_template('signup.html', form=form, users=[user['login'] for user in users], erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'])
 
 @app.route("/volunteer/sign_out", methods=['GET', 'POST'])
 def sign_out():
@@ -187,7 +187,7 @@ def volunteer_report():
 	#print employees
 	employee_photo = employee_model.search_read([("id", "=", employee_id)])[0]['image_small']
 	timesheet_lines = timesheet_model.search_read([("employee_id", "=", employee_key)])
-	return render_template('timesheet_report.html', timesheet_lines=timesheet_lines, employee_photo=employee_photo)
+	return render_template('timesheet_report.html', timesheet_lines=timesheet_lines, employee_photo=employee_photo, erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'])
 
 if __name__ == "__main__":
     app.run()
