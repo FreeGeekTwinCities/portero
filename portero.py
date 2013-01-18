@@ -56,6 +56,7 @@ class VolunteerForm(Form):
 @app.route("/", methods=['GET', 'POST'])
 def sign_in():
 	today = str(date.today().strftime('%Y-%m-%d'))
+	employees_signed_in = []
 	employees = employee_model.search_read([("active", "=", True)])
 	#print employees
 	employee_choices = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees]
@@ -73,8 +74,10 @@ def sign_in():
 	
 	if request.method == 'POST' and form.validate():
 		employee_id = int(request.form['employee'][:request.form['employee'].find(':')])
-		current_timesheets = timesheet_model.search([("employee_id", "=", employee_id), ("date_from", "=", today)])
-		if len(current_timesheets):
+		employee = employee_model.search_read([("id", "=", employee_id)])[0]
+		print employee
+		current_timesheets = timesheet_model.search_read([("employee_id", "=", employee_id), ("date_from", "=", today)])
+		if len(current_timesheets) > 0:
 			sheet = current_timesheets[0]
 		else:
 			new_sheet = {
@@ -87,16 +90,17 @@ def sign_in():
 			}
 			sheet = timesheet_model.create(new_sheet)
 			#print sheet
-			now = str(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))
-			new_event = {
-				'employee_id' : employee_id,
-				'name' : now,
-				'day' : today,
-				'action' : 'sign_in',
-				'sheet_id' : int(sheet)
-			}
-			event = attendance_model.create(new_event)
-			#print event
+		now = str(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))
+		new_event = {
+			'employee_id' : employee_id,
+			'name' : now,
+			'day' : today,
+			'action' : 'sign_in',
+			'sheet_id' : int(sheet['id'])
+		}
+		event = attendance_model.create(new_event)
+		#print event
+		employees_signed_in.append({'id': employee_id, 'photo': employee['image_small'], 'name': employee['name']})
 	
 	attendances_today = attendance_model.search_read([('day', '=', today)])
 	print attendances_today
@@ -110,7 +114,7 @@ def sign_in():
 	#Use the following for OpenERP v6.x
 	#employees_signed_in = [{'id': employee['id'], 'photo': employee['photo'], 'name': employee['name']} for employee in employees if employee['state'] == 'present']
 	#Use the following version for OpenERP v7
-	employees_signed_in = [{'id': employee['id'], 'photo': employee['image_small'], 'name': employee['name']} for employee in employees if employee['state'] == 'present']
+	employees_signed_in.extend([{'id': employee['id'], 'photo': employee['image_small'], 'name': employee['name']} for employee in employees if employee['state'] == 'present'])
 	#print employees_signed_in
 	
 	for employee in employees_signed_in:
