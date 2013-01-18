@@ -14,7 +14,6 @@ import portero_config
 app = Flask(__name__)
 app.config.from_object('portero_config')
 app.secret_key = app.config['SECRET_KEY']
-#print app.config
 	
 import openerplib
 connection = openerplib.get_connection(hostname=app.config['ERP_HOST'], database=app.config['ERP_DB'], login=app.config['ERP_USER'], password=app.config['ERP_PASSWORD'])
@@ -58,7 +57,6 @@ def sign_in():
 	today = str(date.today().strftime('%Y-%m-%d'))
 	employees_signed_in = []
 	employees = employee_model.search_read([("active", "=", True)])
-	#print employees
 	employee_choices = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees]
 		
 	#Set up attendance form
@@ -75,7 +73,6 @@ def sign_in():
 	if request.method == 'POST' and form.validate():
 		employee_id = int(request.form['employee'][:request.form['employee'].find(':')])
 		employee = employee_model.search_read([("id", "=", employee_id)])[0]
-		print employee
 		current_timesheets = timesheet_model.search_read([("employee_id", "=", employee_id), ("date_from", "=", today)])
 		if len(current_timesheets) > 0:
 			sheet = current_timesheets[0]
@@ -89,7 +86,7 @@ def sign_in():
 				'department_id' : request.form['work'],
 			}
 			sheet = timesheet_model.create(new_sheet)
-			#print sheet
+		print sheet
 		now = str(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))
 		new_event = {
 			'employee_id' : employee_id,
@@ -99,7 +96,7 @@ def sign_in():
 			'sheet_id' : int(sheet['id'])
 		}
 		event = attendance_model.create(new_event)
-		#print event
+		print event
 		employees_signed_in.append({'id': employee_id, 'photo': employee['image_small'], 'name': employee['name']})
 	
 	attendances_today = attendance_model.search_read([('day', '=', today)])
@@ -109,7 +106,7 @@ def sign_in():
 	#print timesheets_today
 
 	employees_signed_out = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees if employee['state'] == 'absent']
-	print employees_signed_out
+	#print employees_signed_out
 	
 	#Use the following for OpenERP v6.x
 	#employees_signed_in = [{'id': employee['id'], 'photo': employee['photo'], 'name': employee['name']} for employee in employees if employee['state'] == 'present']
@@ -135,7 +132,7 @@ def sign_up():
 	employees = employee_model.search_read([("active", "=", True)])
 	users = user_model.search_read([])
 	form = VolunteerForm(request.form)
-	print form.validate()
+	#print form.validate()
 	
 	if request.method == 'POST' and form.validate():
 		#First, create the 'user', since the 'employee' record will link to this
@@ -181,7 +178,7 @@ def sign_out():
 		'action' : 'sign_out'
 	}
 	event = attendance_model.create(new_event)
-	print event
+	#print event
 	return redirect(url_for('sign_in'))
 	
 @app.route("/volunteer/report", methods=['GET', 'POST'])
