@@ -57,6 +57,7 @@ class VolunteerForm(Form):
 def sign_in():
 	today = str(date.today().strftime('%Y-%m-%d'))
 	employees = employee_model.search_read([("active", "=", True)])
+	#print employees
 	employee_choices = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees]
 		
 	#Set up attendance form
@@ -122,7 +123,7 @@ def sign_in():
 			employee['work'] = 'Unknown'
 	#print employees_signed_in
 		
-	return render_template('index.html', form=form, event=attendance_model.read(event), employees=employees, employees_signed_out=json.dumps(employees_signed_out), employees_signed_in=employees_signed_in, erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'])
+	return render_template('index.html', form=form, event=attendance_model.read(event), employees=employees, employees_signed_out=json.dumps(employees_signed_out), employees_signed_in=employees_signed_in, erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'], department_limits=app.config['DEPARTMENT_LIMITS'], department_index={department['name'] : department['id'] for department in departments})
 
 #Display new volunteer form
 @app.route("/volunteer/new", methods=['GET', 'POST'])
@@ -168,7 +169,7 @@ def sign_up():
 def sign_out():
 	employee_id = request.args.get('volunteer_id')
 	today = str(date.today().strftime('%Y-%m-%d'))
-	now = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+	now = str(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))
 	new_event = {
 		'employee_id' : employee_id,
 		'name' : now,

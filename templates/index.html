@@ -23,25 +23,44 @@
   
   <h3>Currently Volunteering</h3>
   <div id="current-volunteers" class="row-fluid">
-  
+  <script>
+	//Get list of volunteer capacities	
+	var department_limits = {{ department_limits|safe }};
+	//Get list of department IDs/indexes
+	var department_index = {{ department_index|safe }};
+	//Finally, create an empty list to store full departments/areas
+	var departments_full = [];
+  </script>
     {% for group in employees_signed_in|groupby('work') %}
-      <div id={{ group.grouper }} class="span4">
+		<div id={{ group.grouper }} class="span4">
         <h4>{{ group.grouper }}</h4>
         {% for employee in group.list %}
-          <a href="{{ url_for('volunteer_report', id=employee.id, name=employee.name) }}"><img src="data:image/png;base64,{{ employee.photo}}" width="48px">{{ employee.name }}</a> (<a href="{{ url_for('sign_out', volunteer_id=employee.id) }}">Sign&nbsp;Out</a>)<br/>
+			<a href="{{ url_for('volunteer_report', id=employee.id, name=employee.name) }}"><img src="data:image/png;base64,{{ employee.photo}}" width="48px">{{ employee.name }}</a> (<a href="{{ url_for('sign_out', volunteer_id=employee.id) }}">Sign&nbsp;Out</a>)<br/>
         {% endfor %}
-      </div>
+		</div>
+		
+		<script>
+			//Check to see if the number of volunteers in this "group" equals the maximum for this department
+			if ({{group.list|length}} >= department_limits['{{group.grouper|safe}}']) {
+				//If the department's 'at capacity', add it to the list of full departments - we'll disable sign-in to these departments below
+				departments_full.push(department_index['{{group.grouper|safe}}']);
+			};
+		</script>
     {% endfor %}
   </div>
 {% endblock content %}
 
 {% block inline_js %}
   <script type="text/javascript">
-    $('#employee').attr('autocomplete', 'off');
-    
     $(document).ready(function() {
-      var employees_signed_out = {{ employees_signed_out|safe }};
-      $('#employee').typeahead({source: employees_signed_out, items:5});
+		//disable the browser's autocomplete of volunteer names, since it conflicts with Bootstrap's type-ahead
+		$('#employee').attr('autocomplete', 'off');
+		var employees_signed_out = {{ employees_signed_out|safe }};
+		$('#employee').typeahead({source: employees_signed_out, items:5});
+		for (department in departments_full) {
+			//For each area/department that's 'at capacity', disable the button so that no more volunteers can log in to that area
+			$('input[value="' + departments_full[department] + '"]').prop('disabled', true);
+		};
     });
   </script>
 {% endblock inline_js %}
