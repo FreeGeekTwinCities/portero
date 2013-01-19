@@ -112,7 +112,7 @@ def sign_in():
 	#employees_signed_in = [{'id': employee['id'], 'photo': employee['photo'], 'name': employee['name']} for employee in employees if employee['state'] == 'present']
 	#Use the following version for OpenERP v7
 	employees_signed_in.extend([{'id': employee['id'], 'photo': employee['image_small'], 'name': employee['name']} for employee in employees if employee['state'] == 'present'])
-	#print employees_signed_in
+	print employees_signed_in
 	
 	for employee in employees_signed_in:
 		#print employee

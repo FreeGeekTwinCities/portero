@@ -53,6 +53,7 @@
 {% block inline_js %}
   <script type="text/javascript">
     $(document).ready(function() {
+		console.log(employees_signed_in);
 		//disable the browser's autocomplete of volunteer names, since it conflicts with Bootstrap's type-ahead
 		$('#employee').attr('autocomplete', 'off');
 		var employees_signed_out = {{ employees_signed_out|safe }};
