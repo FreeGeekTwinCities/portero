@@ -11,11 +11,29 @@ from wtforms import Form, DateField, DateTimeField, DecimalField, HiddenField, T
 import json
 import portero_config
 
+import logging
+
 app = Flask(__name__)
 app.config.from_object('portero_config')
 app.secret_key = app.config['SECRET_KEY']
+
+app.debug = app.config['DEBUG']
+if app.debug:
+	logging.basicConfig(level=logging.DEBUG)
+else:
+	from logging.handlers import SMTPHandler, FileHandler
+    mail_handler = SMTPHandler(app.config['SMTP_HOST'],
+                               app.config['SMTP_USER'],
+                               app.config['ADMINS'], 'Portero Error')
+    mail_handler.setLevel(logging.ERROR)
+    app.logger.addHandler(mail_handler)
+    file_handler = FileHandler(app.config['LOG_FILE'])
+    file_handler.setLevel(logging.INFO)
+    app.logger.addHandler(file_handler)
+
 	
 import openerplib
+
 connection = openerplib.get_connection(hostname=app.config['ERP_HOST'], database=app.config['ERP_DB'], login=app.config['ERP_USER'], password=app.config['ERP_PASSWORD'])
 
 employee_model = connection.get_model("hr.employee")
@@ -31,8 +49,6 @@ department_model = connection.get_model('hr.department')
 departments = department_model.search_read([])
 
 address_model = connection.get_model('res.partner')
-
-app.debug = app.config['DEBUG']
     
 Bootstrap(app)
 
@@ -86,7 +102,7 @@ def sign_in():
 				'department_id' : request.form['work'],
 			}
 			sheet = timesheet_model.create(new_sheet)
-		print sheet
+		#print sheet
 		now = str(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))
 		new_event = {
 			'employee_id' : employee_id,
@@ -96,33 +112,30 @@ def sign_in():
 			'sheet_id' : int(sheet['id'])
 		}
 		event = attendance_model.create(new_event)
-		print event
+		#print event
 		employees_signed_in.append({'id': employee_id, 'photo': employee['image_small'], 'name': employee['name']})
 	
 	attendances_today = attendance_model.search_read([('day', '=', today)])
-	print attendances_today
-
+	logging.info('attendances_today=%s' % attendances_today)
+	 
 	#timesheets_today = timesheet_model.search_read([("date_from", "=", today)])
 	#print timesheets_today
 
 	employees_signed_out = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees if employee['state'] == 'absent']
-	#print employees_signed_out
+	logging.info('employees_signed_out=%s' % employees_signed_out)
 	
 	#Use the following for OpenERP v6.x
 	#employees_signed_in = [{'id': employee['id'], 'photo': employee['photo'], 'name': employee['name']} for employee in employees if employee['state'] == 'present']
 	#Use the following version for OpenERP v7
 	employees_signed_in.extend([{'id': employee['id'], 'photo': employee['image_small'], 'name': employee['name']} for employee in employees if employee['state'] == 'present'])
-	#print employees_signed_in
 	
 	for employee in employees_signed_in:
-		#print employee
 		current_work = timesheet_model.search_read([("date_from", "=", today), ("employee_id", "=", employee['id'])])
-		#print current_work
 		if current_work:
 			employee['work'] = current_work[0]['department_id'][1]
 		else:
 			employee['work'] = 'Unknown'
-	#print employees_signed_in
+	logging.info('employees_signed_in=%s' % employees_signed_in)
 		
 	return render_template('index.html', form=form, event=attendance_model.read(event), employees=employees, employees_signed_out=json.dumps(employees_signed_out), employees_signed_in=employees_signed_in, erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'], department_limits=app.config['DEPARTMENT_LIMITS'], department_index={department['name'] : department['id'] for department in departments})
 
@@ -192,4 +205,8 @@ def volunteer_report():
 	return render_template('timesheet_report.html', timesheet_lines=timesheet_lines, employee_photo=employee_photo, erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'])
 
 if __name__ == "__main__":
-    app.run()
+	try:
+		app.run()
+	except:
+		logging.error("Unexpected error:", sys.exc_info()[0])
+		raise

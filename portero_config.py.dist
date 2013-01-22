@@ -1,5 +1,9 @@
 DEBUG = True
-ERP_TYPE = 'openerp'
+LOG_FILE = 'portero.log'
+ADMINS = ['me@mydomain.com']
+SMTP_HOST = 'smtp.mydomain.com'
+SMTP_USER = 'me@mydomain.com'
+SMTP_PASS = 'password'
 ERP_DB = 'test'
 ERP_HOST = 'localhost'
 ERP_USER = 'admin'
