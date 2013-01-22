@@ -1,6 +1,7 @@
 import pkg_resources
 pkg_resources.require("Flask")
 
+import sys
 from datetime import date, datetime, timedelta
 from decimal import *
 
@@ -22,16 +23,13 @@ if app.debug:
 	logging.basicConfig(level=logging.DEBUG)
 else:
 	from logging.handlers import SMTPHandler, FileHandler
-    mail_handler = SMTPHandler(app.config['SMTP_HOST'],
-                               app.config['SMTP_USER'],
-                               app.config['ADMINS'], 'Portero Error')
-    mail_handler.setLevel(logging.ERROR)
-    app.logger.addHandler(mail_handler)
-    file_handler = FileHandler(app.config['LOG_FILE'])
-    file_handler.setLevel(logging.INFO)
-    app.logger.addHandler(file_handler)
+	mail_handler = SMTPHandler(app.config['SMTP_HOST'], app.config['SMTP_USER'], app.config['ADMINS'], 'Portero Error')
+	mail_handler.setLevel(logging.ERROR)
+	app.logger.addHandler(mail_handler)
+	file_handler = FileHandler(app.config['LOG_FILE'])
+	file_handler.setLevel(logging.INFO)
+	app.logger.addHandler(file_handler)
 
-	
 import openerplib
 
 connection = openerplib.get_connection(hostname=app.config['ERP_HOST'], database=app.config['ERP_DB'], login=app.config['ERP_USER'], password=app.config['ERP_PASSWORD'])
@@ -92,6 +90,7 @@ def sign_in():
 		current_timesheets = timesheet_model.search_read([("employee_id", "=", employee_id), ("date_from", "=", today)])
 		if len(current_timesheets) > 0:
 			sheet = current_timesheets[0]
+			sheet_id = sheet['id']
 		else:
 			new_sheet = {
 				'employee_id' : employee_id,
@@ -102,14 +101,16 @@ def sign_in():
 				'department_id' : request.form['work'],
 			}
 			sheet = timesheet_model.create(new_sheet)
-		#print sheet
+			sheet_id = sheet
+		logging.debug(sheet)
+		logging.debug(sheet_id)
 		now = str(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))
 		new_event = {
 			'employee_id' : employee_id,
 			'name' : now,
 			'day' : today,
 			'action' : 'sign_in',
-			'sheet_id' : int(sheet['id'])
+			'sheet_id' : int(sheet_id)
 		}
 		event = attendance_model.create(new_event)
 		#print event
