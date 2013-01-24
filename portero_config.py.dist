@@ -1,4 +1,4 @@
-DEBUG = True
+DEBUG = False
 LOG_FILE = 'portero.log'
 ADMINS = ['me@mydomain.com']
 SMTP_HOST = 'smtp.mydomain.com'
