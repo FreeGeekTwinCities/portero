@@ -22,13 +22,14 @@ app.debug = app.config['DEBUG']
 if app.debug:
 	logging.basicConfig(level=logging.DEBUG)
 else:
-	from logging.handlers import SMTPHandler, FileHandler
+	logging.basicConfig(level=logging.INFO)
+	from logging.handlers import SMTPHandler
 	mail_handler = SMTPHandler(app.config['SMTP_HOST'], app.config['SMTP_USER'], app.config['ADMINS'], 'Portero Error')
 	mail_handler.setLevel(logging.ERROR)
 	app.logger.addHandler(mail_handler)
-	file_handler = FileHandler(app.config['LOG_FILE'])
-	file_handler.setLevel(logging.INFO)
-	app.logger.addHandler(file_handler)
+	#file_handler = FileHandler(app.config['LOG_FILE'])
+	#file_handler.setLevel(logging.INFO)
+	#app.logger.addHandler(file_handler)
 
 import openerplib
 
@@ -93,7 +94,7 @@ def sign_in():
 			sheet_id = sheet['id']
 		else:
 			new_sheet = {
-				'employee_id' : employee_id,
+				'employee_id' : employee['id'],
 				'company_id' : 1,
 				'date_from' : today,
 				'date_current' : today,
@@ -106,7 +107,7 @@ def sign_in():
 		logging.debug(sheet_id)
 		now = str(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))
 		new_event = {
-			'employee_id' : employee_id,
+			'employee_id' : employee['id'],
 			'name' : now,
 			'day' : today,
 			'action' : 'sign_in',
