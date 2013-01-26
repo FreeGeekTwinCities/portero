@@ -50,21 +50,6 @@ departments = department_model.search_read([])
 address_model = connection.get_model('res.partner')
     
 Bootstrap(app)
-
-#Set up new volunteer form
-class VolunteerForm(Form):
-	name = TextField('Full Name', [validators.Required()], description=u"Please enter your full name, first (given) name first, family (last) name last.")
-	email = TextField('Email Address', [validators.Email(message='Please enter a valid email address')])
-	phone = TextField('Phone #')
-	street = TextField('Street Address')
-	city = TextField('City')
-	zip = TextField('Zip Code', [validators.Required()])
-	username = TextField('Username/Login', [validators.Required(), validators.Length(min=3)])
-	password = PasswordField('Password', [validators.Required(), validators.EqualTo('password_confirm', message='Passwords must match')], description=u"The default password is the one from the 'Need a Password' box below; remember this (or write it down), since it will also be your password for Moodle & discussion groups!")
-	password_confirm = PasswordField('Repeat Password')
-	emergency_contact_name = TextField('Name')
-	emergency_contact_phone = TextField('Phone #')
-	action = HiddenField()
 	
 #Display welcome/sign-in page at root of site
 @app.route("/", methods=['GET', 'POST'])
@@ -146,6 +131,22 @@ def sign_in():
 def sign_up():
 	employees = employee_model.search_read([("active", "=", True)])
 	users = user_model.search_read([])
+
+	#Set up new volunteer form
+	class VolunteerForm(Form):
+		name = TextField('Full Name', [validators.Required()], description=u"Please enter your full name, first (given) name first, family (last) name last.")
+		email = TextField('Email Address', [validators.Email(message='Please enter a valid email address')])
+		phone = TextField('Phone #')
+		street = TextField('Street Address')
+		city = TextField('City')
+		zip = TextField('Zip Code', [validators.Required()])
+		username = TextField('Username/Login', [validators.Required(), validators.Length(min=3), validators.NoneOf([user['login'] for user in users], message="Username is already in use, please choose another")])
+		password = PasswordField('Password', [validators.Required(), validators.EqualTo('password_confirm', message='Passwords must match')], description=u"The default password is the one from the 'Need a Password' box below; remember this (or write it down), since it will also be your password for Moodle & discussion groups!")
+		password_confirm = PasswordField('Repeat Password')
+		emergency_contact_name = TextField('Name')
+		emergency_contact_phone = TextField('Phone #')
+		action = HiddenField()
+
 	form = VolunteerForm(request.form)
 	#print form.validate()
 	

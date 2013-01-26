@@ -42,8 +42,6 @@
 		$('#email').attr('autocomplete', 'off');
 		$('#phone').attr('autocomplete', 'off');
 		var suggest_pass = suggestPass();
-		var users = {{ users|safe }};
-		console.log(users.length);
 		$('#suggest_pass').val(suggest_pass);
 		$('#password').val(suggest_pass);
 		$('#password_confirm').val(suggest_pass);
@@ -52,13 +50,6 @@
 			family_name = $('#name').val().split(" ")[1].toLowerCase();
 			var newUser = first_initial + family_name;
 			$('#username').val(newUser)
-		});
-		$('#username').change(function () {
-			var username = $('#username').val();
-			if (users.indexOf(username) >= 0) {
-				$('#username').addClass(':invalid');
-				console.log(users.indexOf(username));
-			};
 		});
     });
 </script>
