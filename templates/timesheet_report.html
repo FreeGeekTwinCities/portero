@@ -12,7 +12,9 @@
       {%- endif -%}
       
       <!-- Get a sum of the "hours" attribute from the timesheet_lines -->
-      You've worked a total of <strong>{{ timesheet_lines|sum(attribute='total_attendance')|round(2) }}</strong> hours so far!
+      {% if timesheet_lines|sum(attribute='total_attendance') > 0 %}
+		You've worked a total of <strong>{{ timesheet_lines|sum(attribute='total_attendance')|round(2) }}</strong> hours so far!
+	  {% endif %}
     </p>
   </div>
   
@@ -27,11 +29,13 @@
         them in reverse order by date (so the latest entry will 
         be at the top), and display them in a table -->
       {% for line in timesheet_lines|sort(attribute='date_from', reverse=True) %}
+		{% if line.total_attendance > 0 %}
         <tr>
           <td>{{ line.date_from }}</td>
           <td>{{ line.total_attendance|round(2) }}</td>
           <td>{{ line.department_id[1] }}</td>
         </tr>
+        {% endif %}
       {% endfor %}
     </tbody>
   </table>
