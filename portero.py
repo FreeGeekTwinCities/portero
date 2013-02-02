@@ -210,6 +210,51 @@ def volunteer_report():
 	timesheet_lines = timesheet_model.search_read([("employee_id", "=", employee_key)])
 	return render_template('timesheet_report.html', timesheet_lines=timesheet_lines, employee_photo=employee_photo, erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'])
 
+
+# RESTful API routes
+
+# Get non-sensitive config data
+@app.route('/api/config', methods=['GET'])
+def api_config_get():
+  return '';
+
+# Get all volunteers
+@app.route('/api/volunteers', methods=['GET'])
+def api_volunteers_get():
+  return '';
+
+# Add volunteer
+@app.route('/api/volunteer/add', methods=['POST'])
+def api_volunteers_add():
+  return '';
+
+# Get volunteer
+@app.route('/api/volunteer/<int:id>', methods=['GET'])
+def api_volunteer_get(id):
+  return '';
+
+# Sign in volunteer to specific department
+@app.route('/api/volunteer/<int:id>/sign_in/<int:dept_id>', methods=['POST'])
+def api_volunteer_sign_in(id, dept_id):
+  return '';
+
+# Sign out a volunteer
+@app.route('/api/volunteer/<int:id>/sign_out', methods=['POST'])
+def api_volunteer_sign_out(id):
+  return '';
+
+# Get departments
+@app.route('/api/departments', methods=['GET'])
+def api_departments():
+  return '';
+
+# Get timesheet data for volunteer
+@app.route('/api/timesheet/<int:volunteer_id>', methods=['GET'])
+def api_timesheet(volunteer_id):
+  return '';
+
+
+# Main application.
 if __name__ == "__main__":
 	try:
 		app.run()
