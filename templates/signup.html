@@ -3,7 +3,9 @@
 {% block content %}
 
 {% if new_volunteer %}
-	<h4 class="text-success">Welcome to Free Geek, {{ new_volunteer }}! You can now <a href="{{ url_for('sign_in') }}">sign in</a>.</h4>
+  <div class="alert alert-success">
+    <strong>Welcome to Free Geek</strong>, {{ new_volunteer }}! You can now <a href="{{ url_for('sign_in') }}">sign in</a>.
+  </div>
 {% endif %}
 	
 <h3>New Volunteer Info</h3>
