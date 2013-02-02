@@ -2,6 +2,7 @@ import pkg_resources
 pkg_resources.require("Flask")
 
 import sys
+import os
 from datetime import date, datetime, timedelta
 from decimal import *
 
@@ -177,6 +178,8 @@ def sign_up():
 			'address_home_id' : address
 		}
 		employee = employee_model.create(new_employee)
+		#Try to import attendances for the newly-created username
+		os.system("import-couchdb-timesheets.py %s" % request.form['username'])
 		employee_choices = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees]
 		return render_template('signup.html', form=VolunteerForm(), new_volunteer=request.form['name'])
 			
