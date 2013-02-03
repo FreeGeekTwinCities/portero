@@ -1,12 +1,19 @@
 {% extends "base.html" %}
 
 {% block content %}
+  <div class="well">
+    Welcome to <em>Portero</em>, Free Geek Twin Cities's <strong>volunteer time management</strong> portal.  If you need help, just ask.
+  </div>
+
   <h3>Sign In</h3>
   
   <form action="{{ url_for('sign_in') }}" method="post">
     <div class="row-fluid">  
       <div class="span4">
         {{ wtf.horizontal_field(form.employee) }}
+        
+        <hr />
+        <p>Don't have an account?  You should <a href="{{ url_for('sign_up') }}">create one</a>.</p>
       </div>
     
       <div class="span8 controls">
