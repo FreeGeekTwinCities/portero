@@ -34,7 +34,7 @@
         <h4>{{ group.grouper }}</h4>
         
         {% for employee in group.list %}
-          <a class="volunteer-image-profile" href="{{ url_for('volunteer_report', id=employee.id, name=employee.name) }}">
+          <a class="volunteer-image-profile thumbnail" href="{{ url_for('volunteer_report', id=employee.id, name=employee.name) }}">
             <img src="data:image/png;base64,{{ employee.photo}}">
           </a>
           <div class="volunteer-info">
