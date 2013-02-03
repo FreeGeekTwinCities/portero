@@ -266,16 +266,16 @@ def api_volunteer_get(volunteer_id):
   return output_json(v)
 
 # Sign in volunteer to specific department
-@app.route('/api/volunteer/sign_in/<int:volunteer_id>/<int:dept_id>', methods=['POST'])
-def api_volunteer_sign_in(volunteer_id, dept_id):
-  v = get_volunteer(volunteer_id)
-  return output_json('')
+@app.route('/api/volunteer/sign_in/<int:volunteer_id>/<int:department_id>', methods=['POST'])
+def api_volunteer_sign_in(volunteer_id, department_id):
+  s = volunteer_sign_in(volunteer_id, department_id)
+  return output_json(s)
 
 # Sign out a volunteer
 @app.route('/api/volunteer/sign_out/<int:volunteer_id>', methods=['POST'])
 def api_volunteer_sign_out(volunteer_id):
-  e = volunteer_sign_out(volunteer_id)
-  return output_json(e)
+  s = volunteer_sign_out(volunteer_id)
+  return output_json(s)
 
 # Get departments
 @app.route('/api/departments', methods=['GET'])
@@ -321,6 +321,41 @@ def volunteer_sign_out(volunteer_id):
 	}
 	event = attendance_model.create(event_entry)
 	return event
+	
+# Sign in volunteer, given ID and department
+def volunteer_sign_in(volunteer_id, department_id):
+	today = str(date.today().strftime('%Y-%m-%d'))
+	now = str(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))
+	timesheet = get_current_timesheet(volunteer_id, department_id)
+	
+	new_event = {
+		'employee_id' : volunteer_id,
+		'name' : now,
+		'day' : today,
+		'action' : 'sign_in',
+		'sheet_id' : timesheet['id']
+	}
+	return attendance_model.create(new_event)
+
+# Get current timesheet.  Returns sheet object
+def get_current_timesheet(volunteer_id, department_id):
+	today = str(date.today().strftime('%Y-%m-%d'))
+	timesheets = timesheet_model.search_read([('employee_id', '=', volunteer_id), ('date_from', '=', today)])
+	
+	# If there are no time current timesheets, make one
+	if len(timesheets) > 0:
+		return timesheets[0]
+	else:
+		new_sheet = {
+			'employee_id' : volunteer_id,
+			'company_id' : 1,
+			'date_from' : today,
+			'date_current' : today,
+			'date_to' : today,
+			'department_id' : department_id,
+		}
+		sheet = timesheet_model.create(new_sheet)
+		return sheet
 
 
 # Main application.
