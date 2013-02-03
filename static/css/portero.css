@@ -19,3 +19,15 @@
   display: inline-block;
   padding-left: .25em;
 }
+
+/**
+ * Volunteer list
+ */
+#current-volunteers .volunteer-image-profile {
+  width: 48px;
+  float: left;
+}
+
+#current-volunteers .volunteer-info {
+  padding-left: 4.5em;
+}
