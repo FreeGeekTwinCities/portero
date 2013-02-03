@@ -34,13 +34,15 @@
         <h4>{{ group.grouper }}</h4>
         
         {% for employee in group.list %}
-          <a class="volunteer-image-profile thumbnail" href="{{ url_for('volunteer_report', id=employee.id, name=employee.name) }}">
-            <img src="data:image/png;base64,{{ employee.photo}}">
-          </a>
-          <div class="volunteer-info">
-            {{ employee.name[:(employee.name.rfind(" ") + 2)] }} <br/>
-            <a class="label label-info" href="{{ url_for('volunteer_report', id=employee.id, name=employee.name) }}">Hours</a> <br/>
-            <a class="label label-warning" href="{{ url_for('sign_out', volunteer_id=employee.id) }}">Sign&nbsp;Out</a>
+          <div class="volunteer-section">
+            <a class="volunteer-image-profile thumbnail" href="{{ url_for('volunteer_report', id=employee.id, name=employee.name) }}">
+              <img src="data:image/png;base64,{{ employee.photo}}">
+            </a>
+            <div class="volunteer-info">
+              {{ employee.name[:(employee.name.rfind(" ") + 2)] }} <br/>
+              <a class="label label-info" href="{{ url_for('volunteer_report', id=employee.id, name=employee.name) }}">Hours</a> <br/>
+              <a class="label label-warning" href="{{ url_for('sign_out', volunteer_id=employee.id) }}">Sign&nbsp;Out</a>
+            </div>
           </div>
         {% endfor %}
       </div>

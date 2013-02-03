@@ -31,3 +31,7 @@
 #current-volunteers .volunteer-info {
   padding-left: 5em;
 }
+
+#current-volunteers .volunteer-section {
+  margin: 0 1em 1em 0;
+}
