@@ -24,13 +24,17 @@ if app.debug:
 	logging.basicConfig(level=logging.DEBUG)
 else:
 	logging.basicConfig(level=logging.INFO)
-	from logging.handlers import SMTPHandler
-	mail_handler = SMTPHandler(app.config['SMTP_HOST'], app.config['SMTP_USER'], app.config['ADMINS'], 'Portero Error')
-	mail_handler.setLevel(logging.ERROR)
-	app.logger.addHandler(mail_handler)
-	#file_handler = FileHandler(app.config['LOG_FILE'])
-	#file_handler.setLevel(logging.INFO)
-	#app.logger.addHandler(file_handler)
+	#from logging.handlers import SMTPHandler
+	#mail_handler = SMTPHandler(app.config['SMTP_HOST'], app.config['SMTP_USER'], app.config['ADMINS'], 'Portero Error')
+	#mail_handler.setLevel(logging.ERROR)
+	#app.logger.addHandler(mail_handler)
+	from logging.handlers import TimedRotatingFileHandler
+	file_handler = TimedRotatingFileHandler(app.config['LOG_FILE'], when='midnight', interval=1, backupCount=7)
+	file_handler.setLevel(logging.INFO)
+	app.logger.addHandler(file_handler)
+	#from logging.handlers import SysLogHandler
+	#syslog_handler = SysLogHandler()
+	#app.logger.addHandler(syslog_handler)
 
 import openerplib
 
@@ -100,6 +104,7 @@ def sign_in():
 			'sheet_id' : int(sheet_id)
 		}
 		event = attendance_model.create(new_event)
+		logging.info("Signed in %s with attendance event %s" % (employee['name'], event))
 		#print event
 		employees_signed_in.append({'id': employee_id, 'photo': employee['image_small'], 'name': employee['name']})
 	
@@ -149,10 +154,12 @@ def sign_up():
 		action = HiddenField()
 
 	form = VolunteerForm(request.form)
+	new_volunteer = False
 	#print form.validate()
 	
 	if request.method == 'POST' and form.validate():
 		#First, create the 'user', since the 'employee' record will link to this
+		logging.info("Creating user %s" % request.form['username'])
 		new_user = {
 			'login' : request.form['username'],
 			'password' : request.form['password'],
@@ -160,6 +167,7 @@ def sign_up():
 			'email' : request.form['email'],
 		}
 		user = user_model.create(new_user)
+		logging.info("Created user %s" % user)
 		
 		#Create an 'address' record to store the volunteer's address info
 		new_address = {
@@ -171,6 +179,7 @@ def sign_up():
 		address = address_model.create(new_address)
 		
 		#Then, create the 'employee' record, linking it to the just-created 'user' - this is required for timesheet entry; also link to the home address
+		logging.info("Creating employee %s" % request.form['name'])
 		new_employee = {
 			'name' : request.form['name'],
 			'work_email' : request.form['email'],
@@ -178,16 +187,18 @@ def sign_up():
 			'address_home_id' : address
 		}
 		employee = employee_model.create(new_employee)
+		logging.info("Created employee %s" % employee)
 		#Try to import attendances for the newly-created username
 		os.system("import-couchdb-timesheets.py %s" % request.form['username'])
 		employee_choices = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees]
-		return render_template('signup.html', form=VolunteerForm(), new_volunteer=request.form['name'])
+		new_volunteer=request.form['name']
 			
-	return render_template('signup.html', form=form, users=[user['login'] for user in users], erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'])
+	return render_template('signup.html', form=form, new_volunteer=new_volunteer, users=[user['login'] for user in users], erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'])
 
 @app.route("/volunteer/sign_out", methods=['GET', 'POST'])
 def sign_out():
 	employee_id = request.args.get('volunteer_id')
+	logging.info("Logging out %s" % employee_id)
 	today = str(date.today().strftime('%Y-%m-%d'))
 	now = str(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))
 	new_event = {
@@ -197,6 +208,7 @@ def sign_out():
 		'action' : 'sign_out'
 	}
 	event = attendance_model.create(new_event)
+	logging.info("Signed out %s with attendance event %s" % (employee_id, event))
 	#print event
 	return redirect(url_for('sign_in'))
 	
@@ -204,6 +216,7 @@ def sign_out():
 def volunteer_report():
 	employee_id = request.args.get('id')
 	employee_name = request.args.get('name')
+	logging.info("Displaying timesheet report for %s" % employee_name)
 	employee_key = [employee_id, employee_name]
 	#print employees
 	employee_photo = employee_model.search_read([("id", "=", employee_id)])[0]['image_small']
