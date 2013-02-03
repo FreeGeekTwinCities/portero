@@ -59,7 +59,12 @@ Local Development
 1. Run server: ```./openerp-server --config=openerp-server.conf```.  The first time this is run, it will install all the needed tables in the database.  You can use the flag ```---without-demo``` to start fresh.
 1. Go to http://localhost:8069/
 1. Login with user: ```admin``` and password ```admin``` (or if changed in conf).
+
+#### Confgiure OpenERP
+
 1. In the web interface, under Installed Modules, install the Timesheets module (will also install the Accounting module).
+1. Click Settings, Under Configuration, click Human Resources.
+    * Enable ```Track attendance for all employees```
 
 ### Install Potero
 
