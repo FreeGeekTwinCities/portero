@@ -1,24 +1,32 @@
+"""
+Portero is Free Geek Twin Cities volunteer time management system that
+uses Open ERP as its back end.
+"""
 import pkg_resources
 pkg_resources.require("Flask")
 
+# Libraries
 import sys
 import os
 from datetime import date, datetime, timedelta
 from decimal import *
-
 from flask import Flask, render_template, request, url_for, redirect, flash, Response
 from flask.ext.bootstrap import Bootstrap
 from wtforms import Form, DateField, DateTimeField, DecimalField, HiddenField, TextField, SelectField, RadioField, PasswordField, validators
-
 import json
 import portero_config
-
 import logging
+import openerplib
 
+
+# Create and configure Flask
 app = Flask(__name__)
 app.config.from_object('portero_config')
 app.secret_key = app.config['SECRET_KEY']
+Bootstrap(app)
 
+
+# Logging 
 app.debug = app.config['DEBUG']
 if app.debug:
 	logging.basicConfig(level=logging.DEBUG)
@@ -36,27 +44,29 @@ else:
 	#syslog_handler = SysLogHandler()
 	#app.logger.addHandler(syslog_handler)
 
-import openerplib
 
+# Connect to OpenERP
 connection = openerplib.get_connection(hostname=app.config['ERP_HOST'], database=app.config['ERP_DB'], login=app.config['ERP_USER'], password=app.config['ERP_PASSWORD'])
 
-employee_model = connection.get_model("hr.employee")
-employees = employee_model.search_read([("active", "=", True)])
-employee_choices = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees]
-
+# Models
+employee_model = connection.get_model('hr.employee')
 user_model = connection.get_model('res.users')
-	
-attendance_model = connection.get_model("hr.attendance")
-timesheet_model = connection.get_model("hr_timesheet_sheet.sheet")
-
+attendance_model = connection.get_model('hr.attendance')
+timesheet_model = connection.get_model('hr_timesheet_sheet.sheet')
 department_model = connection.get_model('hr.department')
+address_model = connection.get_model('res.partner')
+
+# Consistent sets
+employees = employee_model.search_read([('active', '=', True)])
+employee_choices = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees]
 departments = department_model.search_read([])
 
-address_model = connection.get_model('res.partner')
-    
-Bootstrap(app)
-	
-#Display welcome/sign-in page at root of site
+##
+# Main routes
+#
+##
+
+# Display welcome/sign-in page at root of site
 @app.route("/", methods=['GET', 'POST'])
 def sign_in():
 	today = str(date.today().strftime('%Y-%m-%d'))
@@ -262,7 +272,7 @@ def api_volunteer_sign_in(volunteer_id, dept_id):
   return output_json('')
 
 # Sign out a volunteer
-@app.route('/api/volunteer/sign_out/<int:volunteer_id>', methods=['GET'])
+@app.route('/api/volunteer/sign_out/<int:volunteer_id>', methods=['POST'])
 def api_volunteer_sign_out(volunteer_id):
   e = volunteer_sign_out(volunteer_id)
   return output_json(e)
@@ -289,7 +299,11 @@ def api_timesheet(volunteer_id):
 def output_json(data):
   return Response(json.dumps(data), mimetype='application/json')
 
-# Get employee object
+# Get active volunteers
+def get_volunteers():
+  return employee_model.search_read([('active', '=', True)])
+
+# Get volunteer
 def get_volunteer(volunteer_id):
   return employee_model.search_read([('id', '=', id)])[0]
 
