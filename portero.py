@@ -6,7 +6,7 @@ import os
 from datetime import date, datetime, timedelta
 from decimal import *
 
-from flask import Flask, render_template, request, url_for, redirect, flash
+from flask import Flask, render_template, request, url_for, redirect, flash, Response
 from flask.ext.bootstrap import Bootstrap
 from wtforms import Form, DateField, DateTimeField, DecimalField, HiddenField, TextField, SelectField, RadioField, PasswordField, validators
 
@@ -211,47 +211,89 @@ def volunteer_report():
 	return render_template('timesheet_report.html', timesheet_lines=timesheet_lines, employee_photo=employee_photo, erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'])
 
 
+##
 # RESTful API routes
+#
+##
 
 # Get non-sensitive config data
 @app.route('/api/config', methods=['GET'])
 def api_config_get():
-  return '';
+  config = app.config
+  config.pop('PERMANENT_SESSION_LIFETIME', 0)
+  config.pop('ERP_PASSWORD', 0)
+  config.pop('ERP_USER', 0)
+  return output_json(config)
 
-# Get all volunteers
+# Get all volunteers.  Careful because images are output as blob data.
 @app.route('/api/volunteers', methods=['GET'])
 def api_volunteers_get():
-  return '';
+  e = employee_model.search_read()
+  return output_json(e)
 
 # Add volunteer
 @app.route('/api/volunteer/add', methods=['POST'])
 def api_volunteers_add():
-  return '';
+  return output_json('')
 
 # Get volunteer
-@app.route('/api/volunteer/<int:id>', methods=['GET'])
-def api_volunteer_get(id):
-  return '';
+@app.route('/api/volunteer/<int:volunteer_id>', methods=['GET'])
+def api_volunteer_get(volunteer_id):
+  v = get_volunteer(volunteer_id)
+  return output_json(v)
 
 # Sign in volunteer to specific department
-@app.route('/api/volunteer/<int:id>/sign_in/<int:dept_id>', methods=['POST'])
-def api_volunteer_sign_in(id, dept_id):
-  return '';
+@app.route('/api/volunteer/sign_in/<int:volunteer_id>/<int:dept_id>', methods=['POST'])
+def api_volunteer_sign_in(volunteer_id, dept_id):
+  v = get_volunteer(volunteer_id)
+  return output_json('')
 
 # Sign out a volunteer
-@app.route('/api/volunteer/<int:id>/sign_out', methods=['POST'])
-def api_volunteer_sign_out(id):
-  return '';
+@app.route('/api/volunteer/sign_out/<int:volunteer_id>', methods=['GET'])
+def api_volunteer_sign_out(volunteer_id):
+  e = volunteer_sign_out(volunteer_id)
+  return output_json(e)
 
 # Get departments
 @app.route('/api/departments', methods=['GET'])
 def api_departments():
-  return '';
+  d = department_model.search_read([])
+  return output_json(d)
 
 # Get timesheet data for volunteer
 @app.route('/api/timesheet/<int:volunteer_id>', methods=['GET'])
 def api_timesheet(volunteer_id):
-  return '';
+  t = get_timesheet(volunteer_id)
+  return output_json(t)
+  
+
+##  
+# Helper functions
+#
+##
+
+# Wrapper for json since Flask's jsonify is weird
+def output_json(data):
+  return Response(json.dumps(data), mimetype='application/json')
+
+# Get employee object
+def get_volunteer(volunteer_id):
+  return employee_model.search_read([('id', '=', id)])[0]
+
+# Get timesheet object, from employee ID
+def get_timesheet(employee_id):
+  return timesheet_model.search_read([('employee_id', '=', employee_id)])
+
+# Signout volunteer, given ID
+def volunteer_sign_out(volunteer_id):
+	event_entry = {
+		'employee_id': volunteer_id,
+		'name': str(date.today().strftime('%Y-%m-%d')),
+		'day': str(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')),
+		'action': 'sign_out'
+	}
+	event = attendance_model.create(event_entry)
+	return event
 
 
 # Main application.
