@@ -57,8 +57,6 @@ department_model = connection.get_model('hr.department')
 address_model = connection.get_model('res.partner')
 
 # Consistent sets
-employees = employee_model.search_read([('active', '=', True)])
-employee_choices = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees]
 departments = department_model.search_read([])
 
 ##
@@ -74,80 +72,48 @@ def sign_in():
 	employees = employee_model.search_read([("active", "=", True)])
 	employee_choices = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees]
 	signed_in = False
+	event = 0
+	sheet = 0
 		
-	#Set up attendance form
+	# Set up attendance form
 	class AttendanceForm(Form):
 		employee = TextField('Volunteer', [
 		  validators.Required(), validators.AnyOf(
 		    employee_choices, 
-		    message='Please select a valid volunteer ID/name; if your name does not appear when you begin typing it, please check with a staffer or click the New Volunteer link above!'
+		    message = u'Please select a valid volunteer ID/name; if your name does not appear when you begin typing it, please check with a staffer or click the New Volunteer link above!'
 		  )], 
-		  description=u'Begin entering your name (first and/or last, not your username), then select your name & ID from the list; if you can\'t find it, please ask a staffer for help!')
+		  description = u'Begin entering your name (first and/or last, not your username), then select your name & ID from the list; if you can\'t find it, please ask a staffer for help!')
 		  
-		work = RadioField('What are you working on?', [validators.Required()], choices=[(department['id'], department['name']) for department in departments], coerce=int)
+		work = RadioField('What are you working on?', [validators.Required()], 
+		  choices=[(department['id'], 
+		  department['name']) for department in departments], coerce=int)
 		action = HiddenField()
 
-	#Generate attendance entry form (defined in TimesheetForm above)
+	# Generate attendance entry form (defined in TimesheetForm above)
 	form = AttendanceForm(request.form)
-	event = 0
-	sheet = 0
 	
+	# Sign in user if form is validated and submitted
 	if request.method == 'POST' and form.validate():
 		employee_id = int(request.form['employee'][:request.form['employee'].find(':')])
-		employee = employee_model.search_read([("id", "=", employee_id)])[0]
-		current_timesheets = timesheet_model.search_read([("employee_id", "=", employee_id), ("date_from", "=", today)])
-		if len(current_timesheets) > 0:
-			sheet = current_timesheets[0]
-			sheet_id = sheet['id']
-		else:
-			new_sheet = {
-				'employee_id' : employee['id'],
-				'company_id' : 1,
-				'date_from' : today,
-				'date_current' : today,
-				'date_to' : today,
-				'department_id' : request.form['work'],
-			}
-			sheet = timesheet_model.create(new_sheet)
-			sheet_id = sheet
-		logging.debug(sheet)
-		logging.debug(sheet_id)
-		now = str(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))
-		new_event = {
-			'employee_id' : employee['id'],
-			'name' : now,
-			'day' : today,
-			'action' : 'sign_in',
-			'sheet_id' : int(sheet_id)
-		}
-		event = attendance_model.create(new_event)
-		logging.info("Signed in %s with attendance event %s" % (employee['name'], event))
-		#print event
+		department_id = request.form['work']
+		employee = get_volunteer(employee_id)
+		sign_in_event = volunteer_sign_in(employee_id, department_id)
 		employees_signed_in.append({'id': employee_id, 'photo': employee['image_small'], 'name': employee['name']})
 		signed_in = True
-	
-	attendances_today = attendance_model.search_read([('day', '=', today)])
-	logging.info('attendances_today=%s' % attendances_today)
-	 
-	#timesheets_today = timesheet_model.search_read([("date_from", "=", today)])
-	#print timesheets_today
 
+  # Get employees that are signed in and signed out
 	employees_signed_out = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees if employee['state'] == 'absent']
-	logging.info('employees_signed_out=%s' % employees_signed_out)
-	
-	#Use the following for OpenERP v6.x
-	#employees_signed_in = [{'id': employee['id'], 'photo': employee['photo'], 'name': employee['name']} for employee in employees if employee['state'] == 'present']
-	#Use the following version for OpenERP v7
 	employees_signed_in.extend([{'id': employee['id'], 'photo': employee['image_small'], 'name': employee['name']} for employee in employees if employee['state'] == 'present'])
 	
+	# Determine current department for signed in employees
 	for employee in employees_signed_in:
-		current_work = timesheet_model.search_read([("date_from", "=", today), ("employee_id", "=", employee['id'])])
+		current_work = get_current_timesheet(employee['id'])
 		if current_work:
-			employee['work'] = current_work[0]['department_id'][1]
+			employee['work'] = current_work['department_id'][1]
 		else:
 			employee['work'] = 'Unknown'
-	logging.info('employees_signed_in=%s' % employees_signed_in)
-		
+
+  # Return template
 	return render_template('index.html', 
     form=form, event=attendance_model.read(event), employees=employees,
 	  employees_signed_out=json.dumps(employees_signed_out), 
@@ -321,7 +287,7 @@ def get_volunteers():
 
 # Get volunteer
 def get_volunteer(volunteer_id):
-  return employee_model.search_read([('id', '=', id)])[0]
+  return employee_model.search_read([('id', '=', volunteer_id)])[0]
 
 # Get timesheet object, from employee ID
 def get_timesheet(employee_id):
@@ -354,14 +320,14 @@ def volunteer_sign_in(volunteer_id, department_id):
 	return attendance_model.create(new_event)
 
 # Get current timesheet.  Returns sheet object
-def get_current_timesheet(volunteer_id, department_id):
+def get_current_timesheet(volunteer_id, department_id = None):
 	today = str(date.today().strftime('%Y-%m-%d'))
 	timesheets = timesheet_model.search_read([('employee_id', '=', volunteer_id), ('date_from', '=', today)])
 	
-	# If there are no time current timesheets, make one
+	# If there are no current timesheets and a department id given, make one
 	if len(timesheets) > 0:
 		return timesheets[0]
-	else:
+	elif department_id:
 		new_sheet = {
 			'employee_id' : volunteer_id,
 			'company_id' : 1,
@@ -372,6 +338,8 @@ def get_current_timesheet(volunteer_id, department_id):
 		}
 		sheet = timesheet_model.create(new_sheet)
 		return sheet
+	else:
+		return False
 
 
 # Main application.
