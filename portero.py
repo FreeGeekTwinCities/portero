@@ -198,7 +198,8 @@ def volunteers_page():
 def volunteer_report():
 	employee = get_volunteer(request.args.get('id'))
 	timesheets = get_timesheets(request.args.get('id'))
-	
+	logging.debug('I HATE THIS EBUGGER')
+	logging.debug(timesheets)
 	return render_template('timesheet_report.html', 
 		timesheet_lines=timesheets, employee=employee, employee_photo=employee['image_small'], 
 		erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'])
@@ -290,7 +291,9 @@ def get_volunteer(volunteer_id):
 
 # Get timesheets object, from employee ID
 def get_timesheets(employee_id):
-  return timesheet_model.search_read([('employee_id', '=', employee_id)])
+  v = get_volunteer(employee_id)
+  key = [employee_id, v['name']]
+  return timesheet_model.search_read([('employee_id', '=', key)])
   
 # Create new user
 def create_user(username, password, name, email):
@@ -329,19 +332,19 @@ def create_volunteer(name, email, user_id, address_id):
 def volunteer_sign_out(volunteer_id):
 	event_entry = {
 		'employee_id': volunteer_id,
-		'name': str(date.today().strftime('%Y-%m-%d')),
-		'day': str(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')),
+		'day': str(date.today().strftime('%Y-%m-%d')),
+		'name': str(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')),
 		'action': 'sign_out'
 	}
 	return attendance_model.create(event_entry)
+	
 	
 # Sign in volunteer, given ID and department
 def volunteer_sign_in(volunteer_id, department_id):
 	today = str(date.today().strftime('%Y-%m-%d'))
 	now = str(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))
 	timesheet = get_current_timesheet(volunteer_id, department_id)
-	logging.debug('ZZZZZZZZZ')
-	logging.debug(timesheet)
+
 	new_event = {
 		'employee_id' : volunteer_id,
 		'name' : now,
