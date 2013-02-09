@@ -107,7 +107,7 @@ def sign_in():
 	
 	# Determine current department for signed in employees
 	for employee in employees_signed_in:
-		current_work = get_current_timesheet(employee['id'])
+		current_work = get_current_timesheet(employee['id'], False)
 		if current_work:
 			employee['work'] = current_work['department_id'][1]
 		else:
@@ -124,68 +124,63 @@ def sign_in():
 	  signed_in=signed_in
 	 )
 
-#Display new volunteer form
+
+# Display new volunteer form
 @app.route("/volunteer/new", methods=['GET', 'POST'])
 def sign_up():
-	employees = employee_model.search_read([("active", "=", True)])
-	users = user_model.search_read([])
+	employees = get_volunteers()
+	users = get_users()
+	new_volunteer = False
 
-	#Set up new volunteer form
+	# Set up new volunteer form
 	class VolunteerForm(Form):
-		name = TextField('Full Name', [validators.Required()], description=u"Please enter your full name, first (given) name first, family (last) name last.")
-		email = TextField('Email Address', [validators.Email(message='Please enter a valid email address')])
+		name = TextField('Full Name', [validators.Required()], 
+			description=u"Please enter your full name, first (given) name first, family (last) name last.")
+		email = TextField('Email Address', 
+			[validators.Email(message='Please enter a valid email address')])
 		phone = TextField('Phone #')
 		street = TextField('Street Address')
 		city = TextField('City')
 		zip = TextField('Zip Code', [validators.Required()])
-		username = TextField('Username/Login', [validators.Required(), validators.Length(min=3), validators.NoneOf([user['login'] for user in users], message="Username is already in use, please choose another")])
-		password = PasswordField('Password', [validators.Required(), validators.EqualTo('password_confirm', message='Passwords must match')], description=u"The default password is the one from the 'Need a Password' box below; remember this (or write it down), since it will also be your password for Moodle & discussion groups!")
+		username = TextField('Username/Login', 
+			[validators.Required(), validators.Length(min=3), 
+				validators.NoneOf([user['login'] for user in users], 
+				message="Username is already in use, please choose another")])
+		password = PasswordField('Password', 
+			[validators.Required(), validators.EqualTo('password_confirm', 
+				message='Passwords must match')], 
+				description=u"The default password is the one from the 'Need a Password' box below; remember this (or write it down), since it will also be your password for Moodle & discussion groups!")
 		password_confirm = PasswordField('Repeat Password')
 		emergency_contact_name = TextField('Name')
 		emergency_contact_phone = TextField('Phone #')
 		action = HiddenField()
 
 	form = VolunteerForm(request.form)
-	new_volunteer = False
-	#print form.validate()
 	
+	# If form validates and is submitted create new volunteer
 	if request.method == 'POST' and form.validate():
-		#First, create the 'user', since the 'employee' record will link to this
-		logging.info("Creating user %s" % request.form['username'])
-		new_user = {
-			'login' : request.form['username'],
-			'password' : request.form['password'],
-			'name' : request.form['name'],
-			'email' : request.form['email'],
-		}
-		user = user_model.create(new_user)
-		logging.info("Created user %s" % user)
+		# First, create the 'user', since the 'employee' record will link to this
+		user = create_user(request.form['username'], request.form['password'], 
+	   request.form['name'], request.form['email'])
 		
-		#Create an 'address' record to store the volunteer's address info
-		new_address = {
-			'name' : request.form['name'],
-			'street' : request.form['street'],
-			'city' : request.form['city'],
-			'zip' : request.form['zip']
-		}
-		address = address_model.create(new_address)
+		# Create an 'address' record to store the volunteer's address info
+		address = create_address(request.form['name'], request.form['street'],
+			request.form['city'], request.form['zip'])
 		
-		#Then, create the 'employee' record, linking it to the just-created 'user' - this is required for timesheet entry; also link to the home address
-		logging.info("Creating employee %s" % request.form['name'])
-		new_employee = {
-			'name' : request.form['name'],
-			'work_email' : request.form['email'],
-			'user_id' : user,
-			'address_home_id' : address
-		}
-		employee = employee_model.create(new_employee)
-		logging.info("Created employee %s" % employee)
-		#Try to import attendances for the newly-created username
-		os.system("import-couchdb-timesheets.py %s" % request.form['username'])
-		employee_choices = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees]
-		new_volunteer=request.form['name']
+		# Create the 'employee' record, linking it to the just-created 'user'.
+		# this is required for timesheet entry; also link to the home address
+		employee = create_volunteer(request.form['name'], request.form['email'], user, address)
+		
+		# Try to import attendances for the newly-created username
+		import_ledger_data(request.form['username'])
+		
+		# Template values
+		new_volunteer = request.form['name']
 			
-	return render_template('signup.html', form=form, new_volunteer=new_volunteer, users=[user['login'] for user in users], erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'])
+	return render_template('signup.html', form=form, 
+		new_volunteer=new_volunteer, users=[user['login'] for user in users],
+		erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'])
+
 
 @app.route("/volunteer/sign_out", methods=['GET', 'POST'])
 def sign_out():
@@ -285,6 +280,10 @@ def output_json(data):
 def get_volunteers():
   return employee_model.search_read([('active', '=', True)])
 
+# Get system users
+def get_users():
+  return user_model.search_read([])
+
 # Get volunteer
 def get_volunteer(volunteer_id):
   return employee_model.search_read([('id', '=', volunteer_id)])[0]
@@ -292,6 +291,39 @@ def get_volunteer(volunteer_id):
 # Get timesheet object, from employee ID
 def get_timesheet(employee_id):
   return timesheet_model.search_read([('employee_id', '=', employee_id)])
+  
+# Create new user
+def create_user(username, password, name, email):
+  new_user = {
+    'login' : username,
+    'password' : password,
+    'name' : name,
+    'email' : email,
+  }
+  return user_model.create(new_user)
+
+# Create address.  Name should be a valid "name" of a real user
+def create_address(name, street, city, zipcode):
+  if name:
+    new_address = {
+      'name' : name,
+      'street' : street,
+      'city' : city,
+      'zip' : zipcode
+    }
+    return address_model.create(new_address)
+  else:
+    return False
+
+# Create new employee record
+def create_volunteer(name, email, user_id, address_id):
+  new_employee = {
+    'name': name,
+    'work_email': email,
+    'user_id': user_id,
+    'address_home_id': address_id
+  }
+  return employee_model.create(new_employee)
 
 # Signout volunteer, given ID
 def volunteer_sign_out(volunteer_id):
@@ -301,15 +333,15 @@ def volunteer_sign_out(volunteer_id):
 		'day': str(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')),
 		'action': 'sign_out'
 	}
-	event = attendance_model.create(event_entry)
-	return event
+	return attendance_model.create(event_entry)
 	
 # Sign in volunteer, given ID and department
 def volunteer_sign_in(volunteer_id, department_id):
 	today = str(date.today().strftime('%Y-%m-%d'))
 	now = str(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))
 	timesheet = get_current_timesheet(volunteer_id, department_id)
-	
+	logging.debug('ZZZZZZZZZ')
+	logging.debug(timesheet)
 	new_event = {
 		'employee_id' : volunteer_id,
 		'name' : now,
@@ -320,7 +352,7 @@ def volunteer_sign_in(volunteer_id, department_id):
 	return attendance_model.create(new_event)
 
 # Get current timesheet.  Returns sheet object
-def get_current_timesheet(volunteer_id, department_id = None):
+def get_current_timesheet(volunteer_id, department_id):
 	today = str(date.today().strftime('%Y-%m-%d'))
 	timesheets = timesheet_model.search_read([('employee_id', '=', volunteer_id), ('date_from', '=', today)])
 	
@@ -336,10 +368,15 @@ def get_current_timesheet(volunteer_id, department_id = None):
 			'date_to' : today,
 			'department_id' : department_id,
 		}
-		sheet = timesheet_model.create(new_sheet)
-		return sheet
+		# This returns the timesheet ID, not the timesheet object
+		sheet_id = timesheet_model.create(new_sheet)
+		return timesheet_model.search_read([('id', '=', sheet_id)])[0]
 	else:
 		return False
+
+# Import data from coudh/ledger legacy system
+def import_ledger_data(username):
+  return os.system('import-couchdb-timesheets.py %s' % username)
 
 
 # Main application.
