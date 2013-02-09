@@ -34,24 +34,32 @@
   </form>
   
   <h3>Currently Volunteering</h3>
-  <div id="current-volunteers" class="row-fluid">
+  <div id="current-volunteers">
     {% for group in employees_signed_in|groupby('work') %}
-		  <div id="{{ group.grouper }}" class="span4">
-        <h4>{{ group.grouper }}</h4>
-        
-        {% for employee in group.list %}
-          <div class="volunteer-section">
-            <a class="volunteer-image-profile thumbnail" href="{{ url_for('volunteer_report', id=employee.id, name=employee.name) }}">
-              <img src="data:image/png;base64,{{ employee.photo}}">
-            </a>
-            <div class="volunteer-info">
-              {{ employee.name[:(employee.name.rfind(" ") + 2)] }} <br/>
-              <a class="label label-info" href="{{ url_for('volunteer_report', id=employee.id, name=employee.name) }}">Hours</a> <br/>
-              <a class="label label-warning" href="{{ url_for('sign_out', volunteer_id=employee.id) }}">Sign&nbsp;Out</a>
+      {%- if loop.index % 3 == 1 %}
+        <div class="row-fluid">
+      {% endif %}
+      
+  		  <div id="{{ group.grouper }}" class="span4">
+          <h4>{{ group.grouper }}</h4>
+          
+          {% for employee in group.list %}
+            <div class="volunteer-section">
+              <a class="volunteer-image-profile thumbnail" href="{{ url_for('volunteer_report', id=employee.id, name=employee.name) }}">
+                <img src="data:image/png;base64,{{ employee.photo}}">
+              </a>
+              <div class="volunteer-info">
+                {{ employee.name[:(employee.name.rfind(" ") + 2)] }} <br/>
+                <a class="label label-info" href="{{ url_for('volunteer_report', id=employee.id, name=employee.name) }}">Hours</a> <br/>
+                <a class="label label-warning" href="{{ url_for('sign_out', volunteer_id=employee.id) }}">Sign&nbsp;Out</a>
+              </div>
             </div>
-          </div>
-        {% endfor %}
-      </div>
+          {% endfor %}
+        </div>
+        
+      {%- if loop.index % 3 == 0 %}
+        </div>
+      {% endif %}
     {% endfor %}
   </div>
 {% endblock content %}
