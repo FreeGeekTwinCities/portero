@@ -4,9 +4,15 @@
   <div class="well">
     Welcome to <em>Portero</em>, Free Geek Twin Cities's <strong>volunteer time management</strong> portal.  If you need help, just ask.
   </div>
+  
+  {% if signed_in %}
+    <div class="alert alert-success signed-in">
+      You have successfully <strong>signed in</strong>.
+    </div>
+  {% endif %}
 
   <h3>Sign In</h3>
-  <form action="{{ url_for('sign_in') }}" method="post">
+  <form action="{{ url_for('sign_in') }}" method="post" class="sign-in-form">
     <div class="row-fluid">  
       <div class="span4">
         {{ wtf.horizontal_field(form.employee) }}
@@ -52,33 +58,48 @@
 
 {% block inline_js %}
   <script type="text/javascript">
-    $(document).ready(function() {
-    	// Get list of volunteer capacities, department IDs/indexes
-    	var department_limits = {{ department_limits|safe }};
-    	var department_index = {{ department_index|safe }};
-    	var departments_full = [];
-  		var employees_signed_out = {{ employees_signed_out|safe }};
-  		
-  		// Check to see if the number of volunteers in this 
-  		// "group" equals the maximum for this department
-  		{% for group in employees_signed_in|groupby('work') %}
-  			if ({{group.list|length}} >= department_limits['{{group.grouper|safe}}']) {
-  				// If the department's 'at capacity', add it to the 
-  				// list of full departments - we'll disable sign-in to these departments below
-  				departments_full.push(department_index['{{group.grouper|safe}}']);
-  			};
-  		{% endfor %}
-  		
-  		// Disable the browser's autocomplete of volunteer names, since 
-  		// it conflicts with Bootstrap's type-ahead
-  		$('#employee').attr('autocomplete', 'off');
-  		$('#employee').typeahead({source: employees_signed_out, items:5});
-  		
-  		for (department in departments_full) {
-  			// For each area/department that's 'at capacity', disable the 
-  			// button so that no more volunteers can log in to that area
-  			$('input[value="' + departments_full[department] + '"]').prop('disabled', true);
-  		};
-    });
+    (function($, w, undefined) {
+      $(document).ready(function() {
+      	// Get list of volunteer capacities, department IDs/indexes
+      	var department_limits = {{ department_limits|safe }};
+      	var department_index = {{ department_index|safe }};
+      	var departments_full = [];
+    		var employees_signed_out = {{ employees_signed_out|safe }};
+    		
+    		// Check to see if the number of volunteers in this 
+    		// "group" equals the maximum for this department
+    		{% for group in employees_signed_in|groupby('work') %}
+    			if ({{group.list|length}} >= department_limits['{{group.grouper|safe}}']) {
+    				// If the department's 'at capacity', add it to the 
+    				// list of full departments - we'll disable sign-in to these departments below
+    				departments_full.push(department_index['{{group.grouper|safe}}']);
+    			};
+    		{% endfor %}
+    		
+    		// Disable the browser's autocomplete of volunteer names, since 
+    		// it conflicts with Bootstrap's type-ahead
+    		$('#employee').attr('autocomplete', 'off');
+    		$('#employee').typeahead({source: employees_signed_out, items:5});
+    		
+    		for (department in departments_full) {
+    			// For each area/department that's 'at capacity', disable the 
+    			// button so that no more volunteers can log in to that area
+    			$('input[value="' + departments_full[department] + '"]').prop('disabled', true);
+    		};
+    		
+    		// Remove signed in message after a few seconds
+    		$('.signed-in').delay(2000).fadeOut();
+    		
+    		// Clear out any left over posted values if no errros
+    		if ($('.sign-in-form .error').length === 0) {
+      		$('.sign-in-form input[type="text"]').each(function() {
+      		  $(this).val('');  
+      		});
+          $('.sign-in-form input[type="radio"]').each(function() {
+            $(this).prop('checked', false);
+          });
+    		}
+      });
+    })(jQuery, window);
   </script>
 {% endblock inline_js %}

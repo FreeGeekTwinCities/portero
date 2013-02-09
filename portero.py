@@ -73,6 +73,7 @@ def sign_in():
 	employees_signed_in = []
 	employees = employee_model.search_read([("active", "=", True)])
 	employee_choices = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees]
+	signed_in = False
 		
 	#Set up attendance form
 	class AttendanceForm(Form):
@@ -123,6 +124,7 @@ def sign_in():
 		logging.info("Signed in %s with attendance event %s" % (employee['name'], event))
 		#print event
 		employees_signed_in.append({'id': employee_id, 'photo': employee['image_small'], 'name': employee['name']})
+		signed_in = True
 	
 	attendances_today = attendance_model.search_read([('day', '=', today)])
 	logging.info('attendances_today=%s' % attendances_today)
@@ -146,7 +148,15 @@ def sign_in():
 			employee['work'] = 'Unknown'
 	logging.info('employees_signed_in=%s' % employees_signed_in)
 		
-	return render_template('index.html', form=form, event=attendance_model.read(event), employees=employees, employees_signed_out=json.dumps(employees_signed_out), employees_signed_in=employees_signed_in, erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'], department_limits=app.config['DEPARTMENT_LIMITS'], department_index={department['name'] : department['id'] for department in departments})
+	return render_template('index.html', 
+    form=form, event=attendance_model.read(event), employees=employees,
+	  employees_signed_out=json.dumps(employees_signed_out), 
+	  employees_signed_in=employees_signed_in, 
+	  erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'], 
+	  department_limits=app.config['DEPARTMENT_LIMITS'], 
+	  department_index={ department['name'] : department['id'] for department in departments },
+	  signed_in=signed_in
+	 )
 
 #Display new volunteer form
 @app.route("/volunteer/new", methods=['GET', 'POST'])
