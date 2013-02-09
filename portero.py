@@ -332,8 +332,8 @@ def create_volunteer(name, email, user_id, address_id):
 def volunteer_sign_out(volunteer_id):
 	event_entry = {
 		'employee_id': volunteer_id,
-		'day': str(date.today().strftime('%Y-%m-%d')),
 		'name': str(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')),
+		'day': str(date.today().strftime('%Y-%m-%d')),
 		'action': 'sign_out'
 	}
 	return attendance_model.create(event_entry)
@@ -341,14 +341,12 @@ def volunteer_sign_out(volunteer_id):
 	
 # Sign in volunteer, given ID and department
 def volunteer_sign_in(volunteer_id, department_id):
-	today = str(date.today().strftime('%Y-%m-%d'))
-	now = str(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))
 	timesheet = get_current_timesheet(volunteer_id, department_id)
 
 	new_event = {
 		'employee_id' : volunteer_id,
-		'name' : now,
-		'day' : today,
+		'name' : str(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')),
+		'day' : str(date.today().strftime('%Y-%m-%d')),
 		'action' : 'sign_in',
 		'sheet_id' : timesheet['id']
 	}
