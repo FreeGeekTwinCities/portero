@@ -87,7 +87,10 @@
     		// Disable the browser's autocomplete of volunteer names, since 
     		// it conflicts with Bootstrap's type-ahead
     		$('#employee').attr('autocomplete', 'off');
-    		$('#employee').typeahead({source: employees_signed_out, items:5});
+    		$('#employee').typeahead({
+    		  source: employees_signed_out, 
+    		  items: 5
+    		});
     		
     		for (department in departments_full) {
     			// For each area/department that's 'at capacity', disable the 

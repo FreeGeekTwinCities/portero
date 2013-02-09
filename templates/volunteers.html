@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h2>All Volunteers</h2>
+  <div id="all-volunteers">
+    {% for v in volunteers %}
+      {%- if loop.index % 4 == 1 %}
+        <div class="row-fluid">
+      {% endif %}
+      
+  		  <div class="span3">
+          <div class="volunteer-section">
+            <a class="volunteer-image-profile thumbnail" href="{{ url_for('volunteer_report', id=v.id, name=v.name) }}">
+              <img src="data:image/png;base64,{{ v.image_small }}">
+            </a>
+            <div class="volunteer-info">
+              {{ v.name[:(v.name.rfind(" ") + 2)] }} <br/>
+              <a class="label label-info" href="{{ url_for('volunteer_report', id = v.id, name = v.name) }}">Hours</a>
+            </div>
+          </div>
+        </div>
+        
+      {%- if loop.index % 4 == 0 %}
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+{% endblock content %}
+
+{% block inline_js %}
+  <script type="text/javascript">
+    (function($, w, undefined) {
+      $(document).ready(function() {
+      
+      });
+    })(jQuery, window);
+  </script>
+{% endblock inline_js %}

@@ -59,6 +59,7 @@ address_model = connection.get_model('res.partner')
 # Consistent sets
 departments = department_model.search_read([])
 
+
 ##
 # Main routes
 #
@@ -179,6 +180,16 @@ def sign_up():
 			
 	return render_template('signup.html', form=form, 
 		new_volunteer=new_volunteer, users=[user['login'] for user in users],
+		erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'])
+
+
+# Volunteer list
+@app.route("/volunteers", methods=['GET'])
+def volunteers_page():
+	volunteers = get_volunteers()
+	
+	return render_template('volunteers.html', 
+		volunteers=volunteers, 
 		erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'])
 
 

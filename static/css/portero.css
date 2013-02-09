@@ -23,15 +23,16 @@
 /**
  * Volunteer list
  */
-#current-volunteers .volunteer-image-profile {
+.volunteer-image-profile {
   width: 48px;
   float: left;
 }
 
-#current-volunteers .volunteer-info {
+.volunteer-info {
   padding-left: 5em;
 }
 
-#current-volunteers .volunteer-section {
+.volunteer-section {
+  min-height: 48px;
   margin: 0 1em 1em 0;
 }
