@@ -182,33 +182,22 @@ def sign_up():
 		erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'])
 
 
-@app.route("/volunteer/sign_out", methods=['GET', 'POST'])
-def sign_out():
-	employee_id = request.args.get('volunteer_id')
-	logging.info("Logging out %s" % employee_id)
-	today = str(date.today().strftime('%Y-%m-%d'))
-	now = str(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))
-	new_event = {
-		'employee_id' : employee_id,
-		'name' : now,
-		'day' : today,
-		'action' : 'sign_out'
-	}
-	event = attendance_model.create(new_event)
-	logging.info("Signed out %s with attendance event %s" % (employee_id, event))
-	#print event
-	return redirect(url_for('sign_in'))
-	
+# Volunteer report page, number of hours
 @app.route("/volunteer/report", methods=['GET', 'POST'])
 def volunteer_report():
-	employee_id = request.args.get('id')
-	employee_name = request.args.get('name')
-	logging.info("Displaying timesheet report for %s" % employee_name)
-	employee_key = [employee_id, employee_name]
-	#print employees
-	employee_photo = employee_model.search_read([("id", "=", employee_id)])[0]['image_small']
-	timesheet_lines = timesheet_model.search_read([("employee_id", "=", employee_key)])
-	return render_template('timesheet_report.html', timesheet_lines=timesheet_lines, employee_photo=employee_photo, erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'])
+	employee = get_volunteer(request.args.get('id'))
+	timesheets = get_timesheets(request.args.get('id'))
+	
+	return render_template('timesheet_report.html', 
+		timesheet_lines=timesheets, employee=employee, employee_photo=employee['image_small'], 
+		erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'])
+
+
+# Sign out user, then redirect to index page
+@app.route("/volunteer/sign_out", methods=['GET', 'POST'])
+def sign_out():
+	volunteer_sign_out(request.args.get('volunteer_id'))
+	return redirect(url_for('sign_in'))
 
 
 ##
@@ -263,7 +252,7 @@ def api_departments():
 # Get timesheet data for volunteer
 @app.route('/api/timesheet/<int:volunteer_id>', methods=['GET'])
 def api_timesheet(volunteer_id):
-  t = get_timesheet(volunteer_id)
+  t = get_timesheets(volunteer_id)
   return output_json(t)
   
 
@@ -288,8 +277,8 @@ def get_users():
 def get_volunteer(volunteer_id):
   return employee_model.search_read([('id', '=', volunteer_id)])[0]
 
-# Get timesheet object, from employee ID
-def get_timesheet(employee_id):
+# Get timesheets object, from employee ID
+def get_timesheets(employee_id):
   return timesheet_model.search_read([('employee_id', '=', employee_id)])
   
 # Create new user
@@ -377,6 +366,7 @@ def get_current_timesheet(volunteer_id, department_id):
 # Import data from coudh/ledger legacy system
 def import_ledger_data(username):
   return os.system('import-couchdb-timesheets.py %s' % username)
+
 
 
 # Main application.
