@@ -198,8 +198,7 @@ def volunteers_page():
 def volunteer_report():
 	employee = get_volunteer(request.args.get('id'))
 	timesheets = get_timesheets(request.args.get('id'))
-	logging.debug('I HATE THIS EBUGGER')
-	logging.debug(timesheets)
+
 	return render_template('timesheet_report.html', 
 		timesheet_lines=timesheets, employee=employee, employee_photo=employee['image_small'], 
 		erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'])
@@ -264,7 +263,7 @@ def api_departments():
 # Get timesheet data for volunteer
 @app.route('/api/timesheet/<int:volunteer_id>', methods=['GET'])
 def api_timesheet(volunteer_id):
-  t = get_timesheets(volunteer_id)
+  t = get_timesheets_from_id(volunteer_id)
   return output_json(t)
   
 
@@ -294,6 +293,13 @@ def get_timesheets(employee_id):
   v = get_volunteer(employee_id)
   key = [employee_id, v['name']]
   return timesheet_model.search_read([('employee_id', '=', key)])
+
+# Get timesheets object only from employee ID
+#
+# For whatever reason, the search works with the key
+# but not always.  WTF.
+def get_timesheets_from_id(employee_id):
+  return timesheet_model.search_read([('employee_id', '=', employee_id)])
   
 # Create new user
 def create_user(username, password, name, email):
@@ -342,7 +348,6 @@ def volunteer_sign_out(volunteer_id):
 # Sign in volunteer, given ID and department
 def volunteer_sign_in(volunteer_id, department_id):
 	timesheet = get_current_timesheet(volunteer_id, department_id)
-
 	new_event = {
 		'employee_id' : volunteer_id,
 		'name' : str(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')),
