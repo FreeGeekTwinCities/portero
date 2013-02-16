@@ -36,6 +36,7 @@ Local Development
 #### Install server
 
 1. Download source tarball from http://nightly.openerp.com/7.0/nightly/src/.  ```wget http://nightly.openerp.com/7.0/nightly/src/openerp-7.0-latest.tar.gz```
+1. ```brew install libjpeg```
 1. Untar and change directory into it.  ```tar -zxvf openerp-7.0-latest.tar.gz```
 1. (optional) Setup a virtualenv.  If you do not use a virtualenv, you will probably have to ```sudo pip install``` things.
 1. ```pip install simplejson reportlab mako werkzeug babel python-dateutil python-openid PIL unittest2 mock docutils jinja2 gdata```
@@ -46,13 +47,15 @@ Local Development
 1. Create a ```openerp-server.conf``` file.
 1. Update database password and other values if needed
 
-    [options]
-    admin_passwd = admin
-    db_host = localhost
-    db_port = False
-    db_name = openerp
-    db_user = openerp
-    db_password = openerp
+```
+[options]
+admin_passwd = admin
+db_host = localhost
+db_port = False
+db_name = openerp
+db_user = openerp
+db_password = openerp
+```
 
 #### Run OpenERP server
 
