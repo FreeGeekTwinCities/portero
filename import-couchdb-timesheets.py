@@ -9,7 +9,7 @@ from operator import itemgetter, attrgetter
 import_username = sys.argv[1]
 
 # Connect to CouchDB 
-server = Server(url='http://ledger:5984')
+server = Server(url='http://192.168.0.3:5984')
 db = server['frontdesk']
 results = db.view('frontdesk/timesheets_by_volunteer', key=import_username)
 print results
@@ -53,7 +53,7 @@ else:
 				timesheet.value['date'] = [timesheet.value['date']['year'], timesheet.value['date']['month'], timesheet.value['date']['day']]
 			timesheets_to_import["%s%s%s" % (timesheet.value['date'][0], str(timesheet.value['date'][1]).zfill(2), str(timesheet.value['date'][2]).zfill(2))] = timesheet.value
 				
-	for timesheet_id in sorted(timesheets_to_import):
+	for timesheet_id in reversed(sorted(timesheets_to_import)):
 		timesheet = timesheets_to_import[timesheet_id]
 		timesheet_date = "%s-%s-%s" % (timesheet['date'][0], timesheet['date'][1], timesheet['date'][2])
 		print "Importing timesheet for %s" % timesheet_date
@@ -72,19 +72,6 @@ else:
 		else:
 			timesheet_id = openerp_timesheet['id']
 		
-		in_time = str(datetime(int(timesheet['date'][0]), int(timesheet['date'][1]), int(timesheet['date'][2]), 12, 0, 0).strftime('%Y-%m-%d %H:%M:%S'))
-		print "Creating sign-in event at %s" % in_time
-		in_event = {
-			'employee_id' : employee['id'],
-			'name': in_time,
-			'day' : timesheet_date,
-			'action' : 'sign_in',
-			'sheet_id' : timesheet_id
-		}
-		print in_event
-		event = attendance_model.create(in_event)
-		#print event
-		
 		timesheet_hours = int(math.modf(timesheet['hours'])[1])
 		timesheet_minutes = int(math.modf(timesheet['hours'])[0]*60)
 		#print timesheet_minutes
@@ -100,3 +87,18 @@ else:
 		print out_event
 		event = attendance_model.create(out_event)
 		#print event
+		
+		in_time = str(datetime(int(timesheet['date'][0]), int(timesheet['date'][1]), int(timesheet['date'][2]), 12, 0, 0).strftime('%Y-%m-%d %H:%M:%S'))
+		print "Creating sign-in event at %s" % in_time
+		in_event = {
+			'employee_id' : employee['id'],
+			'name': in_time,
+			'day' : timesheet_date,
+			'action' : 'sign_in',
+			'sheet_id' : timesheet_id
+		}
+		print in_event
+		event = attendance_model.create(in_event)
+		#print event
+		
+		
