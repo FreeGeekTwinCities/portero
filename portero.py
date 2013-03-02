@@ -70,7 +70,7 @@ departments = department_model.search_read([])
 def sign_in():
     today = str(date.today().strftime('%Y-%m-%d'))
     employees_signed_in = []
-    employees = employee_model.search_read([("active", "=", True)])
+    employees = employee_model.search_read(domain=[("active", "=", True)], fields=['id', 'name', 'state', 'image_small', 'work'])
     employee_choices = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees]
     signed_in = False
     event = 0
@@ -132,7 +132,7 @@ def sign_in():
 @app.route("/volunteer/new", methods=['GET', 'POST'])
 def sign_up():
 #employees = get_volunteers()
-    users = user_model.search_read(domain=[('active', '=', True)], fields=['login', 'label'])
+    users = get_users()
     new_volunteer = False
 
     # Set up new volunteer form
@@ -288,12 +288,12 @@ def output_json(data):
 
 # Get active volunteers
 def get_volunteers():
-    return employee_model.search_read([('active', '=', True)])
+    return employee_model.search_read(domain=[('active', '=', True)], fields=[])
 
 
 # Get system users
 def get_users():
-    return user_model.search_read([])
+    return user_model.search_read(domain=[], fields=['login', 'label'])
 
 
 # Get volunteer

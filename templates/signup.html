@@ -25,10 +25,25 @@
 	<fieldset name="login">
 		<legend>Login Info</legend>
 		{{ wtf.horizontal_field(form.username) }}
-		{{ wtf.horizontal_field(form.password) }}
+		<div class="control-group {% if form.password.errors %}error{% endif %}">
+		  {{form.password.label(class="control-label")}}
+		  <div class="controls">
+		    {{form.password()|safe}}
+		    <button name="copy_suggest_pass" id="copy_suggest_pass" class="btn btn-primary">Use Suggested Password</button>
+		    {%- if form.password.errors %}
+		      {%- for error in form.password.errors %}
+		        <p class="help-block">{{error}}</p>
+		      {%- endfor %}
+		    {%- elif form.password.description -%}
+		      <p class="help-block">{{form.password.description|safe}}</p>
+		    {%- endif %}
+		  </div>
+		</div>
 		{{ wtf.horizontal_field(form.password_confirm) }}
-		<label class="control-label" for="suggest_pass">Need a password?</label>
-		<div class="controls"><input type="text" id="suggest_pass" readonly="readonly"/></div>
+		<label class="control-label" for="suggest_pass">Suggested Password</label>
+		<div class="controls">
+			<input type="text" id="suggest_pass" readonly="readonly"/>
+		</div>
 	</fieldset>
 
 	{{ wtf.inline_field(form.action) }}
@@ -43,10 +58,17 @@
     $(document).ready(function() {
 		$('#email').attr('autocomplete', 'off');
 		$('#phone').attr('autocomplete', 'off');
+
 		var suggest_pass = suggestPass();
 		$('#suggest_pass').val(suggest_pass);
-		$('#password').val(suggest_pass);
-		$('#password_confirm').val(suggest_pass);
+		$("#copy_suggest_pass").one('click', function(e){
+			$('#password').val(suggest_pass);
+			$('#password_confirm').val(suggest_pass);
+			$("#copy_suggest_pass").fadeOut();
+			e.preventDefault();
+			return false;
+		});
+
 		$('#name').change(function () {
 			first_initial = $('#name').val().charAt(0).toLowerCase();
 			family_name = $('#name').val().split(" ")[1].toLowerCase();
