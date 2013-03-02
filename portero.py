@@ -80,16 +80,12 @@ def sign_in():
     class AttendanceForm(Form):
         employee = TextField('Volunteer', [
             validators.Required(),
-            validators.AnyOf(
-                employee_choices,
-                message=u'Please select a valid volunteer ID/name; if your name does not appear when you begin typing it, please check with a staffer or click the New Volunteer link above!'
-                )
-          ],
-          description=u'Begin entering your name (first and/or last, not your username), then select your name & ID from the list; if you can\'t find it, please ask a staffer for help!')
+            validators.AnyOf(employee_choices, message=u'Please select a valid volunteer ID/name; if your name does not appear when you begin typing it, please check with a staffer or click the New Volunteer link above!')],
+            description=u'Begin entering your name (first and/or last, not your username), then select your name & ID from the list; if you can\'t find it, please ask a staffer for help!')
 
         work = RadioField('What are you working on?', [validators.Required()],
-          choices=[(department['id'],
-          department['name']) for department in departments], coerce=int)
+                          choices=[(department['id'],
+                          department['name']) for department in departments], coerce=int)
         action = HiddenField()
 
     # Generate attendance entry form (defined in TimesheetForm above)
@@ -136,7 +132,7 @@ def sign_in():
 @app.route("/volunteer/new", methods=['GET', 'POST'])
 def sign_up():
 #employees = get_volunteers()
-    users = get_users()
+    users = user_model.search_read(domain=[('active', '=', True)], fields=['login', 'label'])
     new_volunteer = False
 
     # Set up new volunteer form
@@ -150,9 +146,10 @@ def sign_up():
         city = TextField('City')
         zip = TextField('Zip Code', [validators.Required()])
         username = TextField('Username/Login',
-            [validators.Required(), validators.Length(min=3),
-                validators.NoneOf([user['login'] for user in users],
-                message="Username is already in use, please choose another")])
+                            [validators.Required(), validators.Length(min=3),
+                            validators.NoneOf([user['login'] for user in users],
+                            message="Username is already in use, please choose another")
+                            ])
         password = PasswordField('Password',
             [validators.Required(), validators.EqualTo('password_confirm',
                 message='Passwords must match')],
