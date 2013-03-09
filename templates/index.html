@@ -142,37 +142,32 @@
         		url: '/api/volunteer/sign_out/' + id
       		});
       		
-      		// Reload page on successful signout - just a work-around until we can fix the logout modal (issue #23)
-      		$.when(signOutPromise).done(function(signOut) {
-				w.location = '{{ url_for('sign_in') }}';
-			}
-			
       		// Get timesheets
-      		//var timesheetPromise = $.ajax({
-        	//	url: '/api/timesheet/' + id
-      		//});
+      		var timesheetPromise = $.ajax({
+        		url: '/api/timesheet/' + id
+      		});
       		
       		// Use deferred objects to sign out and then get timesheet
-      		//$.when(signOutPromise, timesheetPromise).done(function(signOut, timesheets) {
-      		//  var totalTime = 0;
-      		//  
-      		//  $.each(timesheets[0], function(i, t) {
-        	//	  totalTime += t.total_attendance;
-            //  console.log("Total time now : " + totalTime);
-      		//  });
-        	//	
-        	//	$('.sign-out-modal-name').html(name);
-        	//	$('.sign-out-modal-hours').html(totalTime.toFixed(3));
-        	//	$('.signout-modal').modal('show')
-        	//	  .on('hidden', function() {
-        	//	    w.location = '{{ url_for('sign_in') }}';
-        	//	  });
-        	//	
-        	//	// Automatically close after 5 seconds
-        	//	var timeout = setTimeout(function() {
-        	//	  $('.signout-modal').modal('hide');
-        	//	}, 5000);
-      		//});
+      		$.when(signOutPromise, timesheetPromise).done(function(signOut, timesheets) {
+      		  var totalTime = 0;
+      		  
+      		  $.each(timesheets[0], function(i, t) {
+        		  totalTime += t.total_attendance;
+              console.log("Total time now : " + totalTime);
+      		  });
+        		
+        		$('.sign-out-modal-name').html(name);
+        		$('.sign-out-modal-hours').html(totalTime.toFixed(3));
+        		$('.signout-modal').modal('show')
+        		  .on('hidden', function() {
+        		    w.location = '{{ url_for('sign_in') }}';
+        		  });
+        		
+        		// Automatically close after 5 seconds
+        		var timeout = setTimeout(function() {
+        		  $('.signout-modal').modal('hide');
+        		}, 5000);
+      		});
     		});
       });
     })(jQuery, window);
