@@ -353,23 +353,29 @@ def create_volunteer(name, email, user_id, address_id):
 
 
 # Signout volunteer, given ID
-def volunteer_sign_out(volunteer_id):
-    event_entry = {
+def volunteer_sign_out(volunteer_id, event_day=False, event_time=False):
+	if not (event_day and event_time):
+		event_day = str(date.today().strftime('%Y-%m-%d')),
+		event_time = str(datetime.utcnow().strftime('%H:%M:%S'))
+	event_entry = {
         'employee_id': volunteer_id,
-        'name': str(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')),
-        'day': str(date.today().strftime('%Y-%m-%d')),
+        'name': '%s %s' % (event_day, event_time),
+        'day': event_day,
         'action': 'sign_out'
-    }
-    return attendance_model.create(event_entry)
+	}
+	return attendance_model.create(event_entry)
 
 
 # Sign in volunteer, given ID and department
-def volunteer_sign_in(volunteer_id, department_id):
+def volunteer_sign_in(volunteer_id, department_id, event_day=False, event_time=False):
     timesheet = get_current_timesheet(volunteer_id, department_id)
+    if not (event_day and event_time):
+		event_day = str(date.today().strftime('%Y-%m-%d')),
+		event_time = str(datetime.utcnow().strftime('%H:%M:%S'))
     new_event = {
         'employee_id': volunteer_id,
-        'name': str(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')),
-        'day': str(date.today().strftime('%Y-%m-%d')),
+        'name': '%s %s' % (event_day, event_time),
+        'day': event_day,
         'action': 'sign_in',
         'sheet_id': timesheet['id']
     }
