@@ -16,6 +16,7 @@ from wtforms import Form, DateField, DateTimeField, DecimalField, HiddenField, T
 import json
 import portero_config
 import logging
+import csv
 import openerplib
 
 
@@ -131,7 +132,7 @@ def sign_in():
 # Display new volunteer form
 @app.route("/volunteer/new", methods=['GET', 'POST'])
 def sign_up():
-#employees = get_volunteers()
+	#employees = get_volunteers()
     users = get_users()
     new_volunteer = False
 
@@ -211,6 +212,13 @@ def volunteer_report():
 def sign_out():
     volunteer_sign_out(request.args.get('volunteer_id'))
     return redirect(url_for('sign_in'))
+
+
+# Import timesheets from CSV 
+@app.route("/timesheets/import", methods=['GET', 'POST'])
+def timesheet_import():
+    employee = get_volunteer(request.args.get('new_id'))
+    old_id = request.args.get('old_id')
 
 
 ##
@@ -406,9 +414,19 @@ def get_current_timesheet(volunteer_id, department_id):
         return False
 
 
-# Import data from coudh/ledger legacy system
-def import_ledger_data(username):
-    return os.system('import-couchdb-timesheets.py %s' % username)
+# Import data from couch/ledger legacy system
+def import_timesheets(old_user, new_user):
+	my_timesheets = get_timesheets(new_user)
+    with open(app.config['TIMESHEET_IMPORT_FILE'], 'rb') as csvfile:
+		timesheet_reader = csv.DictReader(csvfile)
+		for row in timesheet_reader:
+			if row['volunteer'] == old_user:
+				for department in departments:
+					if department['name'] == row['work']:
+						work_id = department['id']
+				volunteer_sign_out(new_user, event_day=timesheet_date, event_time=timesheet_sign_out)
+				volunteer_sign_in(new_user, work_id, event_day=timesheet_date, event_time=timesheet_sign_in)
+			
 
 
 # Main application.

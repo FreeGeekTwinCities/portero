@@ -11,3 +11,4 @@ ERP_PASSWORD = 'test'
 SECRET_KEY = 'DwZUYLeVdZo257wngLdCALRvwfuriBSOj4HfJh69htnEax2gILuUKOhfJ07NWvF'
 DEPARTMENT_LIMITS = {'Sales': 4, 'Build': 10, 'Testing': 10, 'Recycling': 15}
 AUTO_SIGNOUT_HOURS = 2
+TIMESHEET_IMPORT_FILE = 'couchdb_export.csv'
