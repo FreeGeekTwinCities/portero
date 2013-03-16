@@ -2,4 +2,9 @@
 *.pyc
 portero_config.py
 *.log
+<<<<<<< HEAD
 *.csv
+=======
+
+portero.log.2013-03-07
+>>>>>>> removing log
