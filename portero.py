@@ -417,7 +417,7 @@ def get_current_timesheet(volunteer_id, department_id):
 # Import data from couch/ledger legacy system
 def import_timesheets(old_user, new_user):
 	my_timesheets = get_timesheets(new_user)
-    with open(app.config['TIMESHEET_IMPORT_FILE'], 'rb') as csvfile:
+        with open(app.config['TIMESHEET_IMPORT_FILE'], 'rb') as csvfile:
 		timesheet_reader = csv.DictReader(csvfile)
 		for row in timesheet_reader:
 			if row['volunteer'] == old_user:
@@ -426,7 +426,6 @@ def import_timesheets(old_user, new_user):
 						work_id = department['id']
 				volunteer_sign_out(new_user, event_day=timesheet_date, event_time=timesheet_sign_out)
 				volunteer_sign_in(new_user, work_id, event_day=timesheet_date, event_time=timesheet_sign_in)
-			
 
 
 # Main application.
