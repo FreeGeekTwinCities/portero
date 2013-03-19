@@ -42,6 +42,10 @@ Local Development
 1. ```pip install simplejson reportlab mako werkzeug babel python-dateutil python-openid PIL unittest2 mock docutils jinja2 gdata```
 1. Manually install PyChart: ```wget https://launchpad.net/ubuntu/natty/+source/python-pychart/1.39-7/+files/python-pychart_1.39.orig.tar.gz; tar -zxvf python-pychart_1.39.orig.tar.gz; cd PyChart-1.39; python setup.py install; cd ..;```
 
+#### Ubuntu Server Install Notes
+
+1.  A nightly deb package is available at ```http://nightly.openerp.com/7.0/nightly/deb/```
+
 #### Configure Server
 
 1. Create a ```openerp-server.conf``` file.
