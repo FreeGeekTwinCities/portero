@@ -132,7 +132,7 @@ def sign_in():
 # Display new volunteer form
 @app.route("/volunteer/new", methods=['GET', 'POST'])
 def sign_up():
-	#employees = get_volunteers()
+    #employees = get_volunteers()
     users = get_users()
     new_volunteer = False
 
@@ -362,24 +362,24 @@ def create_volunteer(name, email, user_id, address_id):
 
 # Signout volunteer, given ID
 def volunteer_sign_out(volunteer_id, event_day=False, event_time=False):
-	if not (event_day and event_time):
-		event_day = str(date.today().strftime('%Y-%m-%d')),
-		event_time = str(datetime.utcnow().strftime('%H:%M:%S'))
-	event_entry = {
+    if not (event_day and event_time):
+        event_day = str(date.today().strftime('%Y-%m-%d')),
+        event_time = str(datetime.utcnow().strftime('%H:%M:%S'))
+    event_entry = {
         'employee_id': volunteer_id,
         'name': '%s %s' % (event_day, event_time),
         'day': event_day,
         'action': 'sign_out'
-	}
-	return attendance_model.create(event_entry)
+    }
+    return attendance_model.create(event_entry)
 
 
 # Sign in volunteer, given ID and department
 def volunteer_sign_in(volunteer_id, department_id, event_day=False, event_time=False):
     timesheet = get_current_timesheet(volunteer_id, department_id)
     if not (event_day and event_time):
-		event_day = str(date.today().strftime('%Y-%m-%d')),
-		event_time = str(datetime.utcnow().strftime('%H:%M:%S'))
+        event_day = str(date.today().strftime('%Y-%m-%d')),
+        event_time = str(datetime.utcnow().strftime('%H:%M:%S'))
     new_event = {
         'employee_id': volunteer_id,
         'name': '%s %s' % (event_day, event_time),
@@ -416,16 +416,16 @@ def get_current_timesheet(volunteer_id, department_id):
 
 # Import data from couch/ledger legacy system
 def import_timesheets(old_user, new_user):
-	my_timesheets = get_timesheets(new_user)
-        with open(app.config['TIMESHEET_IMPORT_FILE'], 'rb') as csvfile:
-		timesheet_reader = csv.DictReader(csvfile)
-		for row in timesheet_reader:
-			if row['volunteer'] == old_user:
-				for department in departments:
-					if department['name'] == row['work']:
-						work_id = department['id']
-				volunteer_sign_out(new_user, event_day=timesheet_date, event_time=timesheet_sign_out)
-				volunteer_sign_in(new_user, work_id, event_day=timesheet_date, event_time=timesheet_sign_in)
+    my_timesheets = get_timesheets(new_user)
+    with open(app.config['TIMESHEET_IMPORT_FILE'], 'rb') as csvfile:
+        timesheet_reader = csv.DictReader(csvfile)
+        for row in timesheet_reader:
+            if row['volunteer'] == old_user:
+                for department in departments:
+                    if department['name'] == row['work']:
+                        work_id = department['id']
+                volunteer_sign_out(new_user, event_day=timesheet_date, event_time=timesheet_sign_out)
+                volunteer_sign_in(new_user, work_id, event_day=timesheet_date, event_time=timesheet_sign_in)
 
 
 # Main application.
