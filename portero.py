@@ -125,36 +125,34 @@ def sign_in():
         erp_host=app.config['ERP_HOST'],
         department_limits=app.config['DEPARTMENT_LIMITS'],
         department_index={department['name']: department['id'] for department in departments},
-        signed_in=signed_in
-     )
+        signed_in=signed_in)
 
 
 # Display new volunteer form
 @app.route("/volunteer/new", methods=['GET', 'POST'])
 def sign_up():
-	#employees = get_volunteers()
+    # employees = get_volunteers()
     users = get_users()
     new_volunteer = False
 
     # Set up new volunteer form
     class VolunteerForm(Form):
         name = TextField('Full Name', [validators.Required()],
-            description=u"Please enter your full name, first (given) name first, family (last) name last.")
+                         description=u"Please enter your full name, first (given) name first, family (last) name last.")
         email = TextField('Email Address',
-            [validators.Email(message='Please enter a valid email address')])
+                          [validators.Email(message='Please enter a valid email address')])
         phone = TextField('Phone #')
         street = TextField('Street Address')
         city = TextField('City')
         zip = TextField('Zip Code', [validators.Required()])
         username = TextField('Username/Login',
-                            [validators.Required(), validators.Length(min=3),
-                            validators.NoneOf([user['login'] for user in users],
-                            message="Username is already in use, please choose another")
-                            ])
+                             [validators.Required(), validators.Length(min=3),
+                             validators.NoneOf([user['login'] for user in users],
+                             message="Username is already in use, please choose another")])
         password = PasswordField('Password',
-            [validators.Required(), validators.EqualTo('password_confirm',
-                message='Passwords must match')],
-                description=u"The default password is the one from the 'Need a Password' box below; remember this (or write it down), since it will also be your password for Moodle & discussion groups!")
+                                 [validators.Required(), validators.EqualTo('password_confirm',
+                                 message='Passwords must match')],
+                                 description=u"The default password is the one from the 'Need a Password' box below; remember this (or write it down), since it will also be your password for Moodle & discussion groups!")
         password_confirm = PasswordField('Repeat Password')
         emergency_contact_name = TextField('Name')
         emergency_contact_phone = TextField('Phone #')
@@ -165,11 +163,11 @@ def sign_up():
     if request.method == 'POST' and form.validate():
         # First, create the 'user', since the 'employee' record will link to this
         user = create_user(request.form['username'], request.form['password'],
-       request.form['name'], request.form['email'])
+                           request.form['name'], request.form['email'])
 
         # Create an 'address' record to store the volunteer's address info
         address = create_address(request.form['name'], request.form['street'],
-            request.form['city'], request.form['zip'])
+                                 request.form['city'], request.form['zip'])
 
         # Create the 'employee' record, linking it to the just-created 'user'.
         # this is required for timesheet entry; also link to the home address
@@ -182,8 +180,8 @@ def sign_up():
         new_volunteer = request.form['name']
 
     return render_template('signup.html', form=form,
-        new_volunteer=new_volunteer, users=[user['login'] for user in users],
-        erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'])
+                           new_volunteer=new_volunteer, users=[user['login'] for user in users],
+                           erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'])
 
 
 # Volunteer list
@@ -192,8 +190,8 @@ def volunteers_page():
     volunteers = get_volunteers()
 
     return render_template('volunteers.html',
-        volunteers=volunteers,
-        erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'])
+                           volunteers=volunteers,
+                           erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'])
 
 
 # Volunteer report page, number of hours
@@ -203,8 +201,11 @@ def volunteer_report():
     timesheets = get_timesheets(request.args.get('id'))
 
     return render_template('timesheet_report.html',
-        timesheet_lines=timesheets, employee=employee, employee_photo=employee['image_small'],
-        erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'])
+                           timesheet_lines=timesheets,
+                           employee=employee,
+                           employee_photo=employee['image_small'],
+                           erp_db=app.config['ERP_DB'],
+                           erp_host=app.config['ERP_HOST'])
 
 
 # Sign out user, then redirect to index page
@@ -214,7 +215,7 @@ def sign_out():
     return redirect(url_for('sign_in'))
 
 
-# Import timesheets from CSV 
+# Import timesheets from CSV
 @app.route("/timesheets/import", methods=['GET', 'POST'])
 def timesheet_import():
     employee = get_volunteer(request.args.get('new_id'))
