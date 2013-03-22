@@ -15,7 +15,7 @@
   <form action="{{ url_for('sign_in') }}" method="post" class="sign-in-form">
     <div class="row-fluid">  
       <div class="span4">
-        {{ wtf.horizontal_field(form.employee) }}
+        {{ wtf.horizontal_field(form.employee, placeholder="Type Your Name") }}
         
         <hr />
         <p>Don't have an account?  You should <a href="{{ url_for('sign_up') }}">create one</a>.</p>
@@ -85,7 +85,6 @@
 {% block inline_js %}
   <script type="text/javascript">
     (function($, w, undefined) {
-      $(document).ready(function() {
       	// Get list of volunteer capacities, department IDs/indexes
       	var department_limits = {{ department_limits|safe }};
       	var department_index = {{ department_index|safe }};
@@ -169,7 +168,7 @@
         		}, 5000);
       		});
     		});
-      });
+        $("#employee").focus();
     })(jQuery, window);
   </script>
 {% endblock inline_js %}
