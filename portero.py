@@ -7,12 +7,11 @@ pkg_resources.require("Flask")
 
 # Libraries
 import sys
-import os
 from datetime import date, datetime, timedelta
 from decimal import *
-from flask import Flask, render_template, request, url_for, redirect, flash, Response
+from flask import Flask, render_template, request, url_for, redirect, Response
 from flask.ext.bootstrap import Bootstrap
-from wtforms import Form, DateField, DateTimeField, DecimalField, HiddenField, TextField, SelectField, RadioField, PasswordField, validators
+from wtforms import Form, HiddenField, TextField, RadioField, PasswordField, validators
 import json
 import portero_config
 import logging
@@ -59,7 +58,8 @@ address_model = connection.get_model('res.partner')
 
 # Consistent sets
 departments = department_model.search_read([])
-
+csvfile = open(app.config['TIMESHEET_IMPORT_FILE'], 'rb')
+timesheet_reader = csv.DictReader(csvfile)
 
 ##
 # Main routes
@@ -69,7 +69,6 @@ departments = department_model.search_read([])
 # Display welcome/sign-in page at root of site
 @app.route("/", methods=['GET', 'POST'])
 def sign_in():
-    today = str(date.today().strftime('%Y-%m-%d'))
     employees_signed_in = []
     employees = employee_model.search_read(domain=[("active", "=", True)], fields=['id', 'name', 'state', 'image_small', 'work'])
     employee_choices = [('%s : %s' % (employee['id'], employee['name'])) for employee in employees]
@@ -218,8 +217,7 @@ def sign_out():
 # Import timesheets from CSV
 @app.route("/timesheets/import", methods=['GET', 'POST'])
 def timesheet_import():
-    employee = get_volunteer(request.args.get('new_id'))
-    old_id = request.args.get('old_id')
+    return import_timesheets(new_user=request.args.get('new_id'), old_user=request.args.get('old_id'))
 
 
 ##
@@ -416,17 +414,19 @@ def get_current_timesheet(volunteer_id, department_id):
 
 
 # Import data from couch/ledger legacy system
-def import_timesheets(old_user, new_user):
+def import_timesheets(old_user=False, new_user=False):
     my_timesheets = get_timesheets(new_user)
-    with open(app.config['TIMESHEET_IMPORT_FILE'], 'rb') as csvfile:
-        timesheet_reader = csv.DictReader(csvfile)
-        for row in timesheet_reader:
-            if row['volunteer'] == old_user:
-                for department in departments:
-                    if department['name'] == row['work']:
-                        work_id = department['id']
-                volunteer_sign_out(new_user, event_day=timesheet_date, event_time=timesheet_sign_out)
-                volunteer_sign_in(new_user, work_id, event_day=timesheet_date, event_time=timesheet_sign_in)
+    for row in timesheet_reader:
+        if row['volunteer'] == old_user:
+            print row
+            timesheet_date = datetime.strptime(row['date'], '%m/%d/%Y').strftime('%Y-%m-%d')
+            print timesheet_date
+            for department in departments:
+                if department['name'] == row['work']:
+                    work_id = department['id']
+                    print work_id
+            #volunteer_sign_out(new_user, event_day=timesheet_date, event_time=timesheet_sign_out)
+            #volunteer_sign_in(new_user, work_id, event_day=timesheet_date, event_time=timesheet_sign_in)
 
 
 # Main application.
