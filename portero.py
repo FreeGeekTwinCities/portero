@@ -173,7 +173,7 @@ def sign_up():
         employee = create_volunteer(request.form['name'], request.form['email'], user, address)
 
         # Try to import attendances for the newly-created username
-        import_ledger_data(request.form['username'])
+        #import_ledger_data(request.form['username'])
 
         # Template values
         new_volunteer = request.form['name']
@@ -295,7 +295,7 @@ def output_json(data):
 
 # Get active volunteers
 def get_volunteers():
-    return employee_model.search_read(domain=[('active', '=', True)], fields=[])
+    return employee_model.search_read(domain=[('active', '=', True), ('name', '!=', 'Administrator')], fields=[])
 
 
 # Get system users
