@@ -11,12 +11,13 @@ from datetime import date, datetime, timedelta
 from decimal import *
 from flask import Flask, render_template, request, url_for, redirect, Response
 from flask.ext.bootstrap import Bootstrap
-from wtforms import Form, HiddenField, TextField, RadioField, PasswordField, validators
+from wtforms import Form, HiddenField, TextField, RadioField, PasswordField, SelectField, validators
 import json
 import portero_config
 import logging
-import csv
 import openerplib
+from couchdb.client import Server
+from operator import itemgetter, attrgetter
 
 
 # Create and configure Flask
@@ -48,6 +49,11 @@ else:
 # Connect to OpenERP
 connection = openerplib.get_connection(hostname=app.config['ERP_HOST'], database=app.config['ERP_DB'], login=app.config['ERP_USER'], password=app.config['ERP_PASSWORD'])
 
+# Connect to CouchDB 
+if ('COUCH_SERVER' in app.config) and ('COUCH_DB' in app.config):
+    couch_server = Server(url=app.config['COUCH_SERVER'])
+    couch_db = couch_server[app.config['COUCH_DB']]
+
 # Models
 employee_model = connection.get_model('hr.employee')
 user_model = connection.get_model('res.users')
@@ -58,8 +64,6 @@ address_model = connection.get_model('res.partner')
 
 # Consistent sets
 departments = department_model.search_read([])
-csvfile = open(app.config['TIMESHEET_IMPORT_FILE'], 'rb')
-timesheet_reader = csv.DictReader(csvfile)
 
 ##
 # Main routes
@@ -214,12 +218,32 @@ def sign_out():
     return redirect(url_for('sign_in'))
 
 
-# Import timesheets from CSV
+# Import timesheets from CouchDB
 @app.route("/timesheets/import", methods=['GET', 'POST'])
 def timesheet_import():
-    return import_timesheets(new_user=request.args.get('new_id'), old_user=request.args.get('old_id'))
+    couch_volunteer_query = couch_db.view('frontdesk/volunteers_not_imported', group_level=1)
+    couch_volunteers = [(id.key, id.key) for id in couch_volunteer_query]
+    openerp_volunteers = [(volunteer['name'], volunteer['name']) for volunteer in get_volunteers()]
+    print couch_volunteers
+    class TimesheetImportForm(Form):
+        new_id = SelectField('TO:', [validators.Required()], choices=openerp_volunteers)
+        old_id = SelectField('Import hours FROM:', [validators.Required()], choices=couch_volunteers)
+        action = HiddenField()
 
-
+    form = TimesheetImportForm(request.form)
+    
+    # If form validates and is submitted, import timesheets
+    if request.method == 'POST' and form.validate():
+        timesheet_array = {}
+        timesheets_to_import = couch_db.view('frontdesk/timesheets_not_imported', key="%s" % request.form['old_id'])
+        for row in timesheets_to_import:
+            timesheet_date = "%s-%s-%s" % (row.value['date'][0], row.value['date'][1], row.value['date'][2]) 
+            print timesheet_date
+            timesheet_array[timesheet_date] = row.value
+        print timesheet_array
+        
+    return render_template('timesheet_import.html',
+                           form=form)
 ##
 # RESTful API routes
 #
@@ -415,19 +439,7 @@ def get_current_timesheet(volunteer_id, department_id):
 
 # Import data from couch/ledger legacy system
 def import_timesheets(old_user=False, new_user=False):
-    my_timesheets = get_timesheets(new_user)
-    for row in timesheet_reader:
-        if row['volunteer'] == old_user:
-            print row
-            timesheet_date = datetime.strptime(row['date'], '%m/%d/%Y').strftime('%Y-%m-%d')
-            print timesheet_date
-            for department in departments:
-                if department['name'] == row['work']:
-                    work_id = department['id']
-                    print work_id
-            #volunteer_sign_out(new_user, event_day=timesheet_date, event_time=timesheet_sign_out)
-            #volunteer_sign_in(new_user, work_id, event_day=timesheet_date, event_time=timesheet_sign_in)
-
+    return True
 
 # Main application.
 if __name__ == "__main__":

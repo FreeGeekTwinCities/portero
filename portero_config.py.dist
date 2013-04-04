@@ -11,4 +11,5 @@ ERP_PASSWORD = 'test'
 SECRET_KEY = 'DwZUYLeVdZo257wngLdCALRvwfuriBSOj4HfJh69htnEax2gILuUKOhfJ07NWvF'
 DEPARTMENT_LIMITS = {'Sales': 4, 'Build': 10, 'Testing': 10, 'Recycling': 15}
 AUTO_SIGNOUT_HOURS = 2
-TIMESHEET_DB = 'http://192.168.0.2:5984/frontdesk'
+COUCH_SERVER = 'http://192.168.0.2:5984/'
+COUCH_DB = 'frontdesk'

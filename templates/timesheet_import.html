@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if new_volunteer %}
+  <div class="alert alert-success">
+    <strong>Welcome to Free Geek</strong>, {{ new_volunteer }}! Let a staffer know if you need to import your old timesheets - otherwise, you can now <a href="{{ url_for('sign_in') }}">sign in</a>.
+  </div>
+{% endif %}
+	
+<h3>Timesheet Import</h3>
+
+<form class="form form-horizontal" action="{{ url_for('timesheet_import') }}" method=post>
+	{{ wtf.horizontal_field(form.old_id) }}
+	{{ wtf.horizontal_field(form.new_id) }}
+	
+	{{ wtf.inline_field(form.action) }}
+	
+	<div class="form-actions"><button name="action_save" type="submit" class="btn btn-primary">Import Timesheets</button></div>
+	
+</form>
+{% endblock content %}
+
+{% block inline_js %}
+<script type="text/javascript">
+    $(document).ready(function() {
+    });
+</script>
+{% endblock inline_js %}
