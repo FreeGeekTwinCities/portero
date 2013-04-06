@@ -223,24 +223,30 @@ def sign_out():
 def timesheet_import():
     couch_volunteer_query = couch_db.view('frontdesk/volunteers_not_imported', group_level=1)
     couch_volunteers = [(id.key, id.key) for id in couch_volunteer_query]
-    openerp_volunteers = [(volunteer['name'], volunteer['name']) for volunteer in get_volunteers()]
+    openerp_volunteers = [((str(volunteer['id']) + ': ' + volunteer['name']), (str(volunteer['id']) + ': ' + volunteer['name'])) for volunteer in get_volunteers()]
     print couch_volunteers
     class TimesheetImportForm(Form):
-        new_id = SelectField('TO:', [validators.Required()], choices=openerp_volunteers)
         old_id = SelectField('Import hours FROM:', [validators.Required()], choices=couch_volunteers)
+        new_id = SelectField('TO:', [validators.Required()], choices=openerp_volunteers)
         action = HiddenField()
 
     form = TimesheetImportForm(request.form)
     
     # If form validates and is submitted, import timesheets
     if request.method == 'POST' and form.validate():
+        new_id = int(request.form['new_id'][:request.form['new_id'].find(':')])
+        print new_id
         timesheet_array = {}
         timesheets_to_import = couch_db.view('frontdesk/timesheets_not_imported', key="%s" % request.form['old_id'])
         for row in timesheets_to_import:
             timesheet_date = "%s-%s-%s" % (row.value['date'][0], row.value['date'][1], row.value['date'][2]) 
-            print timesheet_date
+            #print timesheet_date
+            #print row.value
             timesheet_array[timesheet_date] = row.value
-        print timesheet_array
+            #print timesheet_array
+        timesheet_array_sorted = sorted(timesheet_array.iteritems(), key=itemgetter(0), reverse=True)
+        for sheet in timesheet_array_sorted:
+            create_timesheet(volunteer=new_id, sheet_date=sheet[0], hours=sheet[1]['hours'], department=1)
         
     return render_template('timesheet_import.html',
                            form=form)
@@ -414,8 +420,11 @@ def volunteer_sign_in(volunteer_id, department_id, event_day=False, event_time=F
 
 
 # Get current timesheet.  Returns sheet object
-def get_current_timesheet(volunteer_id, department_id):
-    today = str(date.today().strftime('%Y-%m-%d'))
+def get_current_timesheet(volunteer_id, department_id, sheet_date=False):
+    if sheet_date:
+        today = sheet_date
+    else:
+        today = str(date.today().strftime('%Y-%m-%d'))
     timesheets = timesheet_model.search_read([('employee_id', '=', volunteer_id), ('date_from', '=', today)])
 
     # If there are no current timesheets and a department id given, make one
@@ -438,7 +447,10 @@ def get_current_timesheet(volunteer_id, department_id):
 
 
 # Import data from couch/ledger legacy system
-def import_timesheets(old_user=False, new_user=False):
+def create_timesheet(volunteer=False, sheet_date=False, hours=0, description=False, department=False):
+    get_current_timesheet(volunteer, 1, sheet_date=sheet_date)
+    volunteer_sign_out(volunteer, event_day=sheet_date, event_time="14:00:00")
+    volunteer_sign_in(volunteer, 1, event_day=sheet_date, event_time="12:00:00")
     return True
 
 # Main application.
