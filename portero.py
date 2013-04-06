@@ -234,22 +234,27 @@ def timesheet_import():
     
     # If form validates and is submitted, import timesheets
     if request.method == 'POST' and form.validate():
+        # Get the numerical part of the "new" volunteer ID
         new_id = int(request.form['new_id'][:request.form['new_id'].find(':')])
-        print new_id
+        # Create an array of timesheets to import, so that we can sort them first
         timesheet_array = {}
+        # Get a set of non-imported timesheets for the specified ("old") volunteer ID
         timesheets_to_import = couch_db.view('frontdesk/timesheets_not_imported', key="%s" % request.form['old_id'])
         for row in timesheets_to_import:
+            # Convert date to OpenERP's year-month-day format
             timesheet_date = "%s-%s-%s" % (row.value['date'][0], row.value['date'][1], row.value['date'][2]) 
-            #print timesheet_date
-            #print row.value
+            # Add line to our temporary array, using the date as its index so that we can sort by date
             timesheet_array[timesheet_date] = row.value
-            #print timesheet_array
+        # Once we have all of the timesheets for a volunteer, sort them in reverse chronological order (to preserve the sign-in/sign-out "alternicity" that OpenERP requires)
         timesheet_array_sorted = sorted(timesheet_array.iteritems(), key=itemgetter(0), reverse=True)
         for sheet in timesheet_array_sorted:
-            create_timesheet(volunteer=new_id, sheet_date=sheet[0], hours=sheet[1]['hours'], department=1)
+            print sheet[1]['work_type']
+            sheet_dept = (item for item in departments if item["name"] == sheet[1]['work_type']).next()['id']
+            print sheet_dept
+            create_timesheet(volunteer=new_id, sheet_date=sheet[0], hours=sheet[1]['hours'], department=sheet_dept)
         
-    return render_template('timesheet_import.html',
-                           form=form)
+    return render_template('timesheet_import.html', form=form)
+    
 ##
 # RESTful API routes
 #
@@ -446,11 +451,11 @@ def get_current_timesheet(volunteer_id, department_id, sheet_date=False):
         return False
 
 
-# Import data from couch/ledger legacy system
+# Create a timesheet with a given date and duration, e.g. for CouchDB timehsheet import
 def create_timesheet(volunteer=False, sheet_date=False, hours=0, description=False, department=False):
-    get_current_timesheet(volunteer, 1, sheet_date=sheet_date)
+    get_current_timesheet(volunteer, department, sheet_date=sheet_date)
     volunteer_sign_out(volunteer, event_day=sheet_date, event_time="14:00:00")
-    volunteer_sign_in(volunteer, 1, event_day=sheet_date, event_time="12:00:00")
+    volunteer_sign_in(volunteer, department, event_day=sheet_date, event_time="12:00:00")
     return True
 
 # Main application.
