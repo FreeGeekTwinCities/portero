@@ -151,7 +151,8 @@
       		  var totalTime = 0;
       		  
       		  $.each(timesheets[0], function(i, t) {
-        		  totalTime += t.total_attendance;
+              // Get absolute value of attendance, to prevent negative attendance results
+        		  totalTime += Math.abs(t.total_attendance);
               console.log("Total time now : " + totalTime);
       		  });
         		
