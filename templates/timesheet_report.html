@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 
 {% block content %}
+  {% if couch_server and couch_db %}
+    <div class="alert alert-info">
+      Looking for your old (pre-2013) timesheets? You can view them <a href="{{couch_server}}/{{couch_db}}/_design/frontdesk/_rewrite/timesheets">HERE</a>
+    </div>
+  {% endif %}
   <div class="row-fluid">
     <p>
       <img src="data:image/png;base64,{{ employee_photo }}">

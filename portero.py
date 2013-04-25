@@ -23,6 +23,9 @@ import openerplib
 app = Flask(__name__)
 app.config.from_object('portero_config')
 app.secret_key = app.config['SECRET_KEY']
+if 'COUCH_DB' and 'COUCH_SERVER' in app.config:
+	couch_server = app.config['COUCH_SERVER']
+	couch_db = app.config['COUCH_DB']
 Bootstrap(app)
 
 
@@ -58,8 +61,9 @@ address_model = connection.get_model('res.partner')
 
 # Consistent sets
 departments = department_model.search_read([])
-csvfile = open(app.config['TIMESHEET_IMPORT_FILE'], 'rb')
-timesheet_reader = csv.DictReader(csvfile)
+if 'TIMESHEET_IMPORT_FILE' in app.config:
+	csvfile = open(app.config['TIMESHEET_IMPORT_FILE'], 'rb')
+	timesheet_reader = csv.DictReader(csvfile)
 
 ##
 # Main routes
@@ -190,7 +194,10 @@ def volunteers_page():
 
     return render_template('volunteers.html',
                            volunteers=volunteers,
-                           erp_db=app.config['ERP_DB'], erp_host=app.config['ERP_HOST'])
+                           erp_db=app.config['ERP_DB'],
+                           erp_host=app.config['ERP_HOST'],
+                           couch_server=couch_server,
+                           couch_db=couch_db)
 
 
 # Volunteer report page, number of hours
@@ -204,7 +211,9 @@ def volunteer_report():
                            employee=employee,
                            employee_photo=employee['image_small'],
                            erp_db=app.config['ERP_DB'],
-                           erp_host=app.config['ERP_HOST'])
+                           erp_host=app.config['ERP_HOST'],
+                           couch_server=couch_server,
+                           couch_db=couch_db)
 
 
 # Sign out user, then redirect to index page
