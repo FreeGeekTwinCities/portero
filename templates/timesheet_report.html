@@ -15,7 +15,14 @@
       {%- if request.args.work -%}
         Thanks for your work on {{ request.args.work }}!}<br/>
       {%- endif -%}
-      
+
+      {% if tags %}
+        <p>
+        {% for tag in tags %}
+          <span class="badge badge-success">{{ tag }}</span>
+        {% endfor %}
+        </p>
+      {% endif %}
       <!-- Get a sum of the "hours" attribute from the timesheet_lines -->
       {% if timesheet_lines|sum(attribute='total_attendance') > 0 %}
 		You've worked a total of <strong>{{ timesheet_lines|sum(attribute='total_attendance')|round(2) }}</strong> hours so far!
