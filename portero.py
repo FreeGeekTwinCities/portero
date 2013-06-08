@@ -53,11 +53,13 @@ connection = openerplib.get_connection(hostname=app.config['ERP_HOST'], database
 
 # Models
 employee_model = connection.get_model('hr.employee')
+employee_tag_model = connection.get_model('hr.employee.category')
 user_model = connection.get_model('res.users')
 attendance_model = connection.get_model('hr.attendance')
 timesheet_model = connection.get_model('hr_timesheet_sheet.sheet')
 department_model = connection.get_model('hr.department')
 address_model = connection.get_model('res.partner')
+
 
 # Consistent sets
 departments = department_model.search_read([])
@@ -205,11 +207,19 @@ def volunteers_page():
 def volunteer_report():
     employee = get_volunteer(request.args.get('id'))
     timesheets = get_timesheets(request.args.get('id'))
+    available_tags = {}
+    for tag in get_volunteer_tags():
+        available_tags[tag['id']] = tag['name']
+
+    my_tags = []
+    for my_tag in employee['category_ids']:
+        my_tags.append(available_tags[my_tag])
 
     return render_template('timesheet_report.html',
                            timesheet_lines=timesheets,
                            employee=employee,
                            employee_photo=employee['image_small'],
+                           tags=my_tags,
                            erp_db=app.config['ERP_DB'],
                            erp_host=app.config['ERP_HOST'],
                            couch_server=couch_server,
@@ -306,6 +316,10 @@ def output_json(data):
 def get_volunteers():
     return employee_model.search_read(domain=[('active', '=', True), ('name', '!=', 'Administrator')], fields=[])
 
+
+# Get volunteer tags
+def get_volunteer_tags():
+    return employee_tag_model.search_read()
 
 # Get system users
 def get_users():
