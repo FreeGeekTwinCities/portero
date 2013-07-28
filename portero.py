@@ -144,8 +144,10 @@ def sign_up():
     class VolunteerForm(Form):
         name = TextField('Full Name', [validators.Required()],
                          description=u"Please enter your full name, first (given) name first, family (last) name last.")
-        email = TextField('Email Address',
-                          [validators.Email(message='Please enter a valid email address')])
+        email = TextField('Email Address')
+        # This seems to make email a required field, so disabling validation for now - BDunnette 2013/07/28
+        #email = TextField('Email Address',
+        #                  [validators.Email(message='Please enter a valid email address')])
         phone = TextField('Phone #')
         street = TextField('Street Address')
         city = TextField('City')
