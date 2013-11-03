@@ -1,4 +1,4 @@
 flask
-flask-bootstrap
+flask-bootstrap<3.0.0
 wtforms
 openerp-client-lib
