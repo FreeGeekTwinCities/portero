@@ -10,7 +10,7 @@ import sys
 from datetime import date, datetime, timedelta
 from decimal import *
 from flask import Flask, render_template, request, url_for, redirect, Response
-from flask.ext.bootstrap import Bootstrap
+from flask_bootstrap import Bootstrap
 from wtforms import Form, HiddenField, TextField, RadioField, PasswordField, validators
 import json
 import portero_config

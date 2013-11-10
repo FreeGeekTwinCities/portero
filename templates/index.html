@@ -4,7 +4,7 @@
   <div class="well">
     Welcome to <em>Portero</em>, Free Geek Twin Cities's <strong>volunteer time management</strong> portal.  If you need help, just ask.
   </div>
-  
+
   {% if signed_in %}
     <div class="alert alert-success signed-in">
       You have successfully <strong>signed in</strong>.
@@ -13,36 +13,34 @@
 
   <h3>Sign In</h3>
   <form action="{{ url_for('sign_in') }}" method="post" class="sign-in-form">
-    <div class="row-fluid">  
+    <div class="row-fluid">
       <div class="span4">
-        {{ wtf.horizontal_field(form.employee, placeholder="Type Your Name") }}
-        
+        {{ wtf.form_field(form.employee, placeholder="Type Your Name") }}
+
         <hr />
         <p>Don't have an account?  You should <a href="{{ url_for('sign_up') }}">create one</a>.</p>
       </div>
-    
+
       <div class="span8 controls">
-        {{ wtf.horizontal_field(form.work) }}
+        {{ wtf.form_field(form.work) }}
       </div>
-    
-      {{ wtf.inline_field(form.action) }}
     </div>
 
     <div class="form-actions">
       <button name="action_save" type="submit" class="btn btn-primary">Sign In</button>
     </div>
   </form>
-  
+
   <h3>Currently Volunteering</h3>
   <div id="current-volunteers">
     {% for group in employees_signed_in|groupby('work') %}
       {%- if loop.index % 3 == 1 %}
         <div class="row-fluid">
       {% endif %}
-      
+
   		  <div id="{{ group.grouper }}" class="span4">
           <h4>{{ group.grouper }}</h4>
-          
+
           {% for employee in group.list %}
             <div class="volunteer-section">
               <a class="volunteer-image-profile thumbnail" href="{{ url_for('volunteer_report', id=employee.id, name=employee.name) }}">
@@ -56,26 +54,26 @@
             </div>
           {% endfor %}
         </div>
-        
+
       {%- if loop.index % 3 == 0 %}
         </div>
       {% endif %}
     {% endfor %}
   </div>
-  
+
   <!-- Modal for when signing out -->
   <div class="signout-modal modal hide fade">
     <div class="modal-header">
       <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
       <h3>Signed Out</h3>
     </div>
-    
+
     <div class="modal-body">
       <p><strong><span class="sign-out-modal-name"></span></strong> has signed out.  Current total hours: <strong><span class="sign-out-modal-hours"></span></strong></p>
-      
+
       <p><em>This window will automatically close in 5 seconds.</em></p>
     </div>
-    
+
     <div class="modal-footer">
       <a href="#" class="btn" data-dismiss="modal">Close</a>
     </div>
@@ -90,79 +88,79 @@
       	var department_index = {{ department_index|safe }};
       	var departments_full = [];
     		var employees_signed_out = {{ employees_signed_out|safe }};
-    		
-    		// Check to see if the number of volunteers in this 
+
+    		// Check to see if the number of volunteers in this
     		// "group" equals the maximum for this department
     		{% for group in employees_signed_in|groupby('work') %}
     			if ({{group.list|length}} >= department_limits['{{group.grouper|safe}}']) {
-    				// If the department's 'at capacity', add it to the 
+    				// If the department's 'at capacity', add it to the
     				// list of full departments - we'll disable sign-in to these departments below
     				departments_full.push(department_index['{{group.grouper|safe}}']);
     			};
     		{% endfor %}
-    		
-    		// Disable the browser's autocomplete of volunteer names, since 
+
+    		// Disable the browser's autocomplete of volunteer names, since
     		// it conflicts with Bootstrap's type-ahead
     		$('#employee').attr('autocomplete', 'off');
     		$('#employee').typeahead({
-    		  source: employees_signed_out, 
+    		  source: employees_signed_out,
     		  items: 5
     		});
-    		
+
     		for (department in departments_full) {
-    			// For each area/department that's 'at capacity', disable the 
+    			// For each area/department that's 'at capacity', disable the
     			// button so that no more volunteers can log in to that area
     			$('input[value="' + departments_full[department] + '"]').prop('disabled', true);
     		};
-    		
+
     		// Remove signed in message after a few seconds
     		$('.signed-in').delay(2000).fadeOut();
-    		
+
     		// Clear out any left over posted values if no errros
     		if ($('.sign-in-form .error').length === 0) {
       		$('.sign-in-form input[type="text"]').each(function() {
-      		  $(this).val('');  
+      		  $(this).val('');
       		});
           $('.sign-in-form input[type="radio"]').each(function() {
             $(this).prop('checked', false);
           });
     		}
-    		
+
     		// Handle signout, the fancy way
     		$('.sign-out').on('click', function(e) {
       		e.preventDefault();
       		var $this = $(this);
       		var id = $(this).attr('data-volunteer-id');
       		var name = $(this).attr('data-volunteer-name');
-      		
+
       		// Signout function
       		var signOutPromise = $.ajax({
         		type: 'POST',
         		url: '/api/volunteer/sign_out/' + id
       		});
-      		
+
       		// Get timesheets
       		var timesheetPromise = $.ajax({
         		url: '/api/timesheet/' + id
       		});
-      		
+
       		// Use deferred objects to sign out and then get timesheet
       		$.when(signOutPromise, timesheetPromise).done(function(signOut, timesheets) {
       		  var totalTime = 0;
-      		  
+
       		  $.each(timesheets[0], function(i, t) {
               // Get absolute value of attendance, to prevent negative attendance results
         		  totalTime += Math.abs(t.total_attendance);
               console.log("Total time now : " + totalTime);
       		  });
-        		
+
         		$('.sign-out-modal-name').html(name);
         		$('.sign-out-modal-hours').html(totalTime.toFixed(3));
         		$('.signout-modal').modal('show')
         		  .on('hidden', function() {
         		    w.location = '{{ url_for('sign_in') }}';
         		  });
-        		
+
         		// Automatically close after 5 seconds
         		var timeout = setTimeout(function() {
         		  $('.signout-modal').modal('hide');
