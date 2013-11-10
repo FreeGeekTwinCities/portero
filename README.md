@@ -67,13 +67,13 @@ db_password = openerp
 1. Go to http://localhost:8069/
 1. Login with user: ```admin``` and password ```admin``` (or if changed in conf).
 
-#### Confgiure OpenERP
+#### Configure OpenERP
 
 1. In the web interface, under Installed Modules, install the Timesheets module (will also install the Accounting module).
 1. Click Settings, Under Configuration, click Human Resources.
     * Enable ```Track attendance for all employees```
 
-### Install Potero
+### Install Portero
 
 1. (optional) Setup a virtualenv.
 1. ```pip install -r requirements.txt```
