@@ -75,7 +75,7 @@ db_password = openerp
 1. Click Settings, Under Configuration, click Human Resources.
     * Enable ```Track attendance for all employees```
 
-### Install Potero
+### Install Portero
 
 1. (optional) Setup a virtualenv.
 1. ```pip install -r requirements.txt```
