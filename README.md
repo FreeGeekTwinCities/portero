@@ -25,6 +25,8 @@ Local Development
 
 ### Install OpenERP Server on Mac
 
+(based on info from http://code.zoia.org/2013/05/09/setting-up-openerp7-on-osx-using-virtualenv)
+
 #### Setup database
 
 1. Install Postgres (via homebrew).
@@ -39,14 +41,14 @@ Local Development
 1. ```brew install libjpeg```
 1. Untar and change directory into it.  ```tar -zxvf openerp-7.0-latest.tar.gz```
 1. (optional) Setup a virtualenv.  If you do not use a virtualenv, you will probably have to ```sudo pip install``` things.
-1. ```pip install simplejson reportlab mako werkzeug babel python-dateutil python-openid PIL unittest2 mock docutils jinja2 gdata```
+1. ```pip install simplejson reportlab mako werkzeug babel python-dateutil python-openid PIL unittest2 mock docutils jinja2 gdata lxml pyyaml```
 1. Manually install PyChart: ```wget https://launchpad.net/ubuntu/natty/+source/python-pychart/1.39-7/+files/python-pychart_1.39.orig.tar.gz; tar -zxvf python-pychart_1.39.orig.tar.gz; cd PyChart-1.39; python setup.py install; cd ..;```
 
-#### Ubuntu Server Install Notes
+### Ubuntu Server Install Notes
 
 1.  A nightly deb package is available at ```http://nightly.openerp.com/7.0/nightly/deb/```
 
-#### Configure Server
+### Configure Server
 
 1. Create a ```openerp-server.conf``` file.
 1. Update database password and other values if needed
