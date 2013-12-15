@@ -63,6 +63,16 @@ db_user = openerp
 db_password = openerp
 ```
 
+### Installing OpenERP Server on Ubuntu
+
+1. Download .deb package: http://nightly.openerp.com/7.0/nightly/deb/openerp_7.0-latest-1_all.deb
+2. sudo dpkg install openerp_7.0-latest-1_all.deb
+3. sudo apt-get -f install (this downloads most of OpenERP's required packages)
+4. sudo apt-get install postgresql
+5. sudo -u postgres createuser --no-createrole --no-superuser openerp
+
+OpenERP should now be running - you can view it (and create your database) at http://localhost:8069
+
 ### Run OpenERP server
 
 1. Run server: ```./openerp-server --config=openerp-server.conf```.  The first time this is run, it will install all the needed tables in the database.  You can use the flag ```---without-demo``` to start fresh.
