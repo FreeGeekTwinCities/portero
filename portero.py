@@ -68,70 +68,6 @@ if 'TIMESHEET_IMPORT_FILE' in app.config:
 	csvfile = open(app.config['TIMESHEET_IMPORT_FILE'], 'rb')
 	timesheet_reader = csv.DictReader(csvfile)
 
-    
-##
-# RESTful API routes
-#
-##
-
-if api_enabled:
-    # Get non-sensitive config data
-    @app.route('/api/config', methods=['GET'])
-    def api_config_get():
-        config = app.config
-        config.pop('PERMANENT_SESSION_LIFETIME', 0)
-        config.pop('ERP_PASSWORD', 0)
-        config.pop('ERP_USER', 0)
-        return output_json(config)
-    
-    
-    # Get all volunteers.  Careful because images are output as blob data.
-    @app.route('/api/volunteers', methods=['GET'])
-    def api_volunteers_get():
-        e = employee_model.search_read()
-        return output_json(e)
-    
-    
-    # Add volunteer
-    @app.route('/api/volunteer/add', methods=['POST'])
-    def api_volunteers_add():
-        return output_json('')
-    
-    
-    # Get volunteer
-    @app.route('/api/volunteer/<int:volunteer_id>', methods=['GET'])
-    def api_volunteer_get(volunteer_id):
-        v = get_volunteer(volunteer_id)
-        return output_json(v)
-    
-    
-    # Sign in volunteer to specific department
-    @app.route('/api/volunteer/sign_in/<int:volunteer_id>/<int:department_id>', methods=['POST'])
-    def api_volunteer_sign_in(volunteer_id, department_id):
-        s = volunteer_sign_in(volunteer_id, department_id)
-        return output_json(s)
-    
-    
-    # Sign out a volunteer
-    @app.route('/api/volunteer/sign_out/<int:volunteer_id>', methods=['POST'])
-    def api_volunteer_sign_out(volunteer_id):
-        s = volunteer_sign_out(volunteer_id)
-        return output_json(s)
-    
-    
-    # Get departments
-    @app.route('/api/departments', methods=['GET'])
-    def api_departments():
-        d = department_model.search_read([])
-        return output_json(d)
-    
-    
-    # Get timesheet data for volunteer
-    @app.route('/api/timesheet/<int:volunteer_id>', methods=['GET'])
-    def api_timesheet(volunteer_id):
-        t = get_timesheets_from_id(volunteer_id)
-        return output_json(t)
-
 
 ##
 # Helper functions
@@ -265,6 +201,79 @@ def get_current_timesheet(volunteer_id, department_id):
         return timesheet_model.search_read([('id', '=', sheet_id)])[0]
     else:
         return False
+
+    
+##
+# RESTful API routes
+#
+##
+
+if api_enabled:
+    from flask.ext.restful import reqparse, abort, Api, Resource
+    api = Api(app)
+    
+    # Get non-sensitive config data
+    @app.route('/api/config', methods=['GET'])
+    def api_config_get():
+        config = app.config
+        config.pop('PERMANENT_SESSION_LIFETIME', 0)
+        config.pop('ERP_PASSWORD', 0)
+        config.pop('ERP_USER', 0)
+        return output_json(config)
+    
+    
+    # Add volunteer
+    @app.route('/api/volunteer/add', methods=['POST'])
+    def api_volunteers_add():
+        return output_json('')
+    
+    
+    # Sign in volunteer to specific department
+    @app.route('/api/volunteer/sign_in/<int:volunteer_id>/<int:department_id>', methods=['POST'])
+    def api_volunteer_sign_in(volunteer_id, department_id):
+        s = volunteer_sign_in(volunteer_id, department_id)
+        return output_json(s)
+    
+    
+    # Sign out a volunteer
+    @app.route('/api/volunteer/sign_out/<int:volunteer_id>', methods=['POST'])
+    def api_volunteer_sign_out(volunteer_id):
+        s = volunteer_sign_out(volunteer_id)
+        return output_json(s)
+    
+    
+    # Get departments
+    class DepartmentList(Resource):
+        def get(self):
+            d = department_model.search_read([])
+            return d
+    
+    # Get volunteer info
+    class Volunteer(Resource):
+        def get(self, volunteer_id):
+            v = get_volunteer(volunteer_id)
+            return v    
+    
+    # Get all volunteers.  Careful because images are output as blob data.
+    class VolunteerList(Resource):
+        def get(self):
+            e = employee_model.search_read()
+            return e
+    
+    # Get timesheet data for volunteer
+    class VolunteerTimesheet(Resource):
+        def get(self, volunteer_id):
+            t = get_timesheets_from_id(volunteer_id)
+            return t
+    
+    ##
+    ## Actually setup the Api resource routing here
+    ##
+    api.add_resource(Volunteer, '/api/volunteer/<int:volunteer_id>')
+    api.add_resource(VolunteerList, '/api/volunteer/all')
+    api.add_resource(VolunteerTimesheet, '/api/timesheet/<int:volunteer_id>')
+    api.add_resource(DepartmentList, '/api/department/all')
+
 
 
 ##
