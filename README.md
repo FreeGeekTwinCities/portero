@@ -2,6 +2,13 @@ Portero
 =======
 [Portero](http://github.com/freegeektwincities/portero) is a simplified ERP web interface for common tasks at [Free Geek Twin Cities](http://freegeektwincities.org).
 
+*NOTE: As of 2014, work on Portero has largely stopped!*
+
+In its place, we're working on:
+
+1. [Conserje](http://github.com/freegeektwincities/conserje) as a front-end, and
+
+2. [hapier](http://github.com/freegeektwincities/hapier) as an API that, in turn, interfaces with OpenERP
 
 Installation
 ------------
